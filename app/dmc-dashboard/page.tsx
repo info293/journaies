@@ -22,7 +22,6 @@ import EmbedCode from '@/components/dmc-dashboard/EmbedCode'
 import AgentSettings from '@/components/dmc-dashboard/AgentSettings'
 import QuotationsManager from '@/components/dmc-dashboard/QuotationsManager'
 import QuotationHistory from '@/components/dmc-dashboard/QuotationHistory'
-import DemoDataLoader from '@/components/dmc-dashboard/DemoDataLoader'
 import NotificationsPanel from '@/components/dmc-dashboard/NotificationsPanel'
 import type { Agent } from '@/lib/types/agent'
 
@@ -335,13 +334,6 @@ export default function AgentDashboardPage() {
               <p className="text-xs text-gray-400">{agentData?.companyName} · {agentData?.contactName}</p>
             </div>
             <div className="flex items-center gap-3">
-              {currentUser && agentSlug && (
-                <DemoDataLoader
-                  agentId={currentUser.uid}
-                  agentSlug={agentSlug}
-                  onDone={fetchNewBookings}
-                />
-              )}
               <a
                 href={`/tailored-travel/${agentSlug}${currentUser ? `?subAgent=${currentUser.uid}` : ''}`}
                 target="_blank"

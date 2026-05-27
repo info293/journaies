@@ -24,17 +24,46 @@ export default function AdminLoginPage() {
     e.preventDefault()
     setError('')
     setSubmitting(true)
+
+    console.log('[ADMIN-LOGIN] ── handleSubmit ──────────────────')
+    console.log('[ADMIN-LOGIN] Email entered:', email)
+    console.log('[ADMIN-LOGIN] Password length:', password.length)
+
+    // ── Server-side debug check (prints in terminal) ──
+    try {
+      const debugRes = await fetch('/api/debug/auth-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const debugData = await debugRes.json()
+      console.log('[ADMIN-LOGIN] Debug API result:', debugData)
+    } catch (debugErr) {
+      console.warn('[ADMIN-LOGIN] Debug API call failed:', debugErr)
+    }
+
     try {
       await login(email, password)
-      // AuthContext will set isAdmin, redirect happens in useEffect
+      console.log('[ADMIN-LOGIN] ✅ login() resolved — waiting for isAdmin redirect')
+      console.log('[ADMIN-LOGIN] isAdmin currently:', isAdmin)
+      console.log('[ADMIN-LOGIN] currentUser after login:', currentUser?.uid)
     } catch (err: any) {
+      console.error('[ADMIN-LOGIN] ❌ login() threw error:')
+      console.error('[ADMIN-LOGIN] code:', err.code)
+      console.error('[ADMIN-LOGIN] message:', err.message)
+      console.error('[ADMIN-LOGIN] full error:', err)
+
       const code = err.code || ''
       if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
         setError('Invalid email or password.')
       } else if (code === 'auth/too-many-requests') {
         setError('Too many attempts. Try again in a few minutes.')
+      } else if (code === 'auth/operation-not-allowed') {
+        setError('Email/Password sign-in is not enabled. Enable it in Firebase Console → Authentication → Sign-in method.')
+      } else if (code === 'auth/invalid-email') {
+        setError('Invalid email format.')
       } else {
-        setError(err.message || 'Login failed. Please try again.')
+        setError(`Error (${code || 'unknown'}): ${err.message || 'Login failed.'}`)
       }
     } finally {
       setSubmitting(false)

@@ -87,15 +87,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         unsubscribe = onAuthStateChanged(auth, async (user) => {
+          console.log('[AUTH-STATE] onAuthStateChanged fired — user:', user ? `${user.email} (${user.uid})` : 'null (logged out)')
           setCurrentUser(user)
           if (user && user.email) {
             try {
               if (db) {
+                console.log('[AUTH-STATE] Fetching Firestore doc for:', user.uid)
                 const userDoc = await getDoc(doc(db, 'users', user.uid))
+                console.log('[AUTH-STATE] Firestore doc exists:', userDoc.exists())
 
                 if (userDoc.exists()) {
                   const userData = userDoc.data()
                   const userRole = userData.role || 'user'
+                  console.log('[AUTH-STATE] ✅ role from Firestore:', userRole)
+                  console.log('[AUTH-STATE] → isAdmin will be:', userRole === 'admin')
                   setIsAdmin(userRole === 'admin')
                   setIsAgent(userRole === 'agent')
                   setIsSubAgent(userRole === 'subagent')
@@ -198,25 +203,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function login(email: string, password: string) {
+    console.log('[AUTH-DEBUG] ── login() called ──────────────────')
+    console.log('[AUTH-DEBUG] Email:', email)
+
     const { auth, db } = await import('@/lib/firebase')
     const { signInWithEmailAndPassword } = await import('firebase/auth')
     const { doc, getDoc, setDoc, serverTimestamp } = await import('firebase/firestore')
 
+    console.log('[AUTH-DEBUG] Firebase auth object:', auth ? '✅ exists' : '❌ null')
+    console.log('[AUTH-DEBUG] Firebase db object:', db ? '✅ exists' : '❌ null')
+    console.log('[AUTH-DEBUG] Auth app name:', auth?.app?.name)
+    console.log('[AUTH-DEBUG] Auth project:', (auth?.app?.options as any)?.projectId)
+
     if (!auth || !db) throw new Error('Firebase not initialized')
 
-    const userCredential = await signInWithEmailAndPassword(auth, email, password)
+    console.log('[AUTH-DEBUG] Calling signInWithEmailAndPassword...')
+    let userCredential: any
+    try {
+      userCredential = await signInWithEmailAndPassword(auth, email, password)
+      console.log('[AUTH-DEBUG] ✅ Sign-in SUCCESS')
+      console.log('[AUTH-DEBUG] UID:', userCredential.user.uid)
+      console.log('[AUTH-DEBUG] Email verified:', userCredential.user.emailVerified)
+    } catch (signInError: any) {
+      console.error('[AUTH-DEBUG] ❌ signInWithEmailAndPassword FAILED')
+      console.error('[AUTH-DEBUG] Error code:', signInError.code)
+      console.error('[AUTH-DEBUG] Error message:', signInError.message)
+      console.error('[AUTH-DEBUG] Full error:', JSON.stringify(signInError, null, 2))
+      throw signInError
+    }
 
     // Update last login in Firestore
     if (userCredential.user) {
       const userRef = doc(db, 'users', userCredential.user.uid)
+      console.log('[AUTH-DEBUG] Fetching Firestore user doc for UID:', userCredential.user.uid)
       const userSnap = await getDoc(userRef)
 
       if (userSnap.exists()) {
+        console.log('[AUTH-DEBUG] ✅ Firestore user doc found')
+        console.log('[AUTH-DEBUG] User role:', userSnap.data()?.role)
+        console.log('[AUTH-DEBUG] User agentStatus:', userSnap.data()?.agentStatus)
         await setDoc(userRef, {
           lastLogin: serverTimestamp(),
         }, { merge: true })
       } else {
-        // Create user document if it doesn't exist
+        console.warn('[AUTH-DEBUG] ⚠️ No Firestore user doc found — creating default user doc')
         const userDoc = {
           email: userCredential.user.email,
           displayName: userCredential.user.displayName || '',
@@ -228,6 +258,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           permissions: [] as string[]
         }
         await setDoc(userRef, userDoc)
+        console.warn('[AUTH-DEBUG] ⚠️ New user doc created with role: user (NOT admin!)')
       }
     }
   }
