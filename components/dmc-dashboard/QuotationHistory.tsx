@@ -896,7 +896,7 @@ export default function QuotationHistory({ agentId, subAgentId, currency }: Prop
                                     <td className="px-1 py-1">
                                       <select value={h.mealPlan} onChange={e => setEditHotels(prev => prev.map((r, idx) => idx === i ? { ...r, mealPlan: e.target.value } : r))}
                                         className="px-2 py-1 border border-gray-200 rounded-lg text-xs outline-none focus:border-amber-400 bg-white">
-                                        {['Breakfast', 'Half Board', 'Full Board', 'All Inclusive', 'Room Only'].map(m => <option key={m}>{m}</option>)}
+                                        {['Breakfast', 'Breakfast + Lunch/Dinner', 'All Meals', 'Room Only'].map(m => <option key={m}>{m}</option>)}
                                       </select>
                                     </td>
                                     <td className="px-1 py-1"><input value={h.roomType} onChange={e => setEditHotels(prev => prev.map((r, idx) => idx === i ? { ...r, roomType: e.target.value } : r))}

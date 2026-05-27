@@ -121,7 +121,7 @@ const TRAVEL_TYPES = ['Leisure', 'Adventure', 'Honeymoon', 'Family', 'Corporate'
 const STAR_CATEGORIES = ['3-Star', '4-Star', '5-Star', 'Luxury', 'Budget', 'Homestay']
 const THEMES = ['Beach', 'Wildlife', 'Cultural', 'Hills', 'Desert', 'Adventure', 'Wellness', 'Heritage', 'Backpacking']
 const MOODS = ['Relaxing', 'Adventurous', 'Romantic', 'Family Fun', 'Spiritual', 'Exploratory']
-const MEAL_PLANS = ['Breakfast', 'Half Board', 'Full Board', 'All Inclusive', 'Room Only']
+const MEAL_PLANS = ['Breakfast', 'Breakfast + Lunch/Dinner', 'All Meals', 'Room Only']
 const VEHICLE_TYPES = ['Sedan', 'SUV', 'Innova Crysta', 'Tempo Traveller (12 Seater)', 'Tempo Traveller (16 Seater)', 'Mini Bus (20 Seater)', 'Bus (40+ Seater)', 'Luxury Car', 'Hatchback', 'Van', 'Auto Rickshaw']
 const PRESET_PERKS = [
   { label: 'Free Airport Transfer', emoji: '🚗' },

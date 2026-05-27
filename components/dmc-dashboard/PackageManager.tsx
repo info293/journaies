@@ -69,7 +69,7 @@ const EMPTY_FORM = {
   cancellationPolicy: '',
 }
 
-const MEAL_PLANS = ['Breakfast', 'Half Board', 'Full Board', 'All Inclusive', 'Room Only']
+const MEAL_PLANS = ['Breakfast', 'Breakfast + Lunch/Dinner', 'All Meals', 'Room Only']
 const TRAVEL_TYPES = ['Leisure', 'Adventure', 'Honeymoon', 'Family', 'Corporate', 'Pilgrimage', 'Wildlife']
 const STAR_CATEGORIES = ['', '3-Star', '4-Star', '5-Star']
 const THEMES = ['Beach', 'Wildlife', 'Cultural', 'Hills', 'Desert', 'Adventure', 'Wellness', 'Heritage', 'Backpacking']
@@ -261,6 +261,7 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
   const [pkgStatusFilter, setPkgStatusFilter] = useState<'all' | 'active' | 'paused'>('all')
   const [pkgDestFilter, setPkgDestFilter] = useState('all')
   const [pkgHotelFilter, setPkgHotelFilter] = useState<'all' | 'with' | 'without'>('all')
+  const [pkgSortBy, setPkgSortBy] = useState<'updatedAt' | 'nights' | 'name'>('updatedAt')
 
   function makeSnapshot(
     f: typeof EMPTY_FORM,
@@ -1813,6 +1814,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
           const matchHotel = pkgHotelFilter === 'all' || (pkgHotelFilter === 'with' ? WITH_HOTEL_CATS.has(pkg.starCategory || '') : !WITH_HOTEL_CATS.has(pkg.starCategory || ''))
           return matchSearch && matchStatus && matchDest && matchHotel
         })
+        const firestoreToDate = (v: any): Date | null => {
+          if (!v) return null
+          if (typeof v.toDate === 'function') return v.toDate()
+          // Serialised Firestore Timestamp: { _seconds, _nanoseconds } or { seconds, nanoseconds }
+          const secs = v._seconds ?? v.seconds
+          if (typeof secs === 'number') return new Date(secs * 1000)
+          const d = new Date(v)
+          return isNaN(d.getTime()) ? null : d
+        }
+        const getPkgTime = (pkg: any) => {
+          const d = firestoreToDate(pkg.updatedAt) || firestoreToDate(pkg.createdAt)
+          return d ? d.getTime() : 0
+        }
+        const sortedPackages = [...filteredPackages].sort((a, b) => {
+          if (pkgSortBy === 'name') return (a.title || '').localeCompare(b.title || '')
+          if (pkgSortBy === 'nights') return (b.durationNights ?? 0) - (a.durationNights ?? 0)
+          return getPkgTime(b) - getPkgTime(a) // updatedAt (fallback createdAt) desc
+        })
         return (
         <>
           {/* Filter bar — row 1: search + status */}
@@ -1835,7 +1854,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
               ))}
             </div>
           </div>
-          {/* Filter bar — row 2: destination + hotel filter + count */}
+          {/* Filter bar — row 2: destination + hotel filter + sort + count */}
           <div className="flex flex-wrap items-center gap-2.5 mb-3">
             {destOptions.length > 2 && (
               <select value={pkgDestFilter} onChange={e => setPkgDestFilter(e.target.value)}
@@ -1853,7 +1872,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                 </button>
               ))}
             </div>
-            <span className="text-xs text-gray-400 ml-auto">{filteredPackages.length} of {packages.length}</span>
+            {/* Sort by */}
+            <div className="flex items-center gap-1.5 ml-auto">
+              <span className="text-xs text-gray-500 font-semibold whitespace-nowrap">Sort by:</span>
+              <select value={pkgSortBy} onChange={e => setPkgSortBy(e.target.value as any)}
+                className="text-xs border border-gray-200 rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-200 bg-white font-medium text-gray-700">
+                <option value="updatedAt">Updated At</option>
+                <option value="nights">Package Nights</option>
+                <option value="name">Package Name</option>
+              </select>
+            </div>
+            <span className="text-xs text-gray-400">{filteredPackages.length} of {packages.length}</span>
           </div>
 
           {filteredPackages.length === 0 ? (
@@ -1865,7 +1894,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
             </div>
           ) : (
         <div className="divide-y divide-gray-100 rounded-2xl border border-gray-200 overflow-hidden">
-          {filteredPackages.map(pkg => (
+          {sortedPackages.map(pkg => (
             <div key={pkg.id} className="flex items-center gap-4 p-4 bg-white hover:bg-gray-50">
               {pkg.primaryImageUrl ? (
                 <img
@@ -1904,6 +1933,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                   </div>
                 )}
               </div>
+              {/* Timestamp column */}
+              {(() => {
+                const rawUpdated = (pkg as any).updatedAt
+                const rawCreated = (pkg as any).createdAt
+                const updatedDate = firestoreToDate(rawUpdated)
+                const createdDate = firestoreToDate(rawCreated)
+                const date = updatedDate || createdDate
+                const label = updatedDate ? 'Updated' : 'Created'
+                if (!date) return <div className="w-28 flex-shrink-0" />
+                return (
+                  <div className="w-28 flex-shrink-0 flex flex-col items-start gap-0.5">
+                    <span className={`text-[10px] font-semibold uppercase tracking-wide ${updatedDate ? 'text-blue-400' : 'text-gray-400'}`}>{label}</span>
+                    <span className="text-[11px] text-gray-600 font-medium leading-tight">
+                      {date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </span>
+                    <span className="text-[10px] text-gray-400 leading-tight">
+                      {date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                )
+              })()}
               <div className="flex items-center gap-2 flex-shrink-0">
                 {/* Active / Inactive toggle */}
                 <button
