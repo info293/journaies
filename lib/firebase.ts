@@ -5,16 +5,15 @@ import { initializeApp, getApps, FirebaseApp } from 'firebase/app'
 import { getAuth, Auth } from 'firebase/auth'
 import { getFirestore, Firestore } from 'firebase/firestore'
 
-// Your web app's Firebase configuration
+// Your web app's Firebase configuration (loaded from environment variables)
 const firebaseConfig = {
-  apiKey: "AIzaSyDFMs2l-0OlMBAJS-XjcXM9oHX3uRNRE5E",
-  authDomain: "travelzada.firebaseapp.com",
-  projectId: "travelzada",
-  storageBucket: "travelzada.firebasestorage.app",
-  messagingSenderId: "941629695254",
-  appId: "1:941629695254:web:df7fd6f7ed6d14eb14dc37",
-  measurementId: "G-5JQNQ4BRCJ"
-}
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+};
 
 console.log('[SSR-DEBUG-FIREBASE] firebase.ts module loaded on:', typeof window === 'undefined' ? 'SERVER' : 'CLIENT')
 
