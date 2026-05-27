@@ -430,7 +430,7 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
         'Day 1: Arrival in Bali — Romantic Welcome||Arrive at Ngurah Rai Airport. Private transfer to luxury pool villa. Romantic welcome with flowers and fruit basket. Rest and relax.||Day 2: Ubud & Rice Terraces||Visit iconic Tegallalang Rice Terraces. Explore Ubud Art Market. Visit Sacred Monkey Forest. Evening Kecak dance show at sunset.||Day 3: Temple Trail & Spa||Morning visit to Tanah Lot sea temple. Afternoon at Uluwatu cliffside temple. Couples Balinese spa session in the evening.||Day 4: Water Sports & Beach Day||Morning leisure at the villa. Afternoon water sports at Nusa Dua — parasailing, jet ski, banana boat. Sunset dinner at Jimbaran seafood bay.||Day 5: Nusa Penida Day Trip||Speed boat to Nusa Penida. Visit Kelingking Beach, Angel Billabong, and Broken Beach. Return by evening.||Day 6: Leisure & Shopping||Free day for shopping and spa. Visit Seminyak boutiques or relax by the villa pool. Farewell dinner at a rooftop restaurant.||Day 7: Departure||Checkout, last-minute shopping if time permits. Transfer to airport for departure flight.',
         'Year Round',
         '',
-        'Seminyak;2;W Bali — Seminyak;Breakfast;Retreat Pool Suite||Ubud;4;Alaya Resort Ubud;Half Board;Private Pool Villa',
+        'Seminyak;2;W Bali — Seminyak;Breakfast;Retreat Pool Suite||Ubud;4;Alaya Resort Ubud;Breakfast + Lunch/Dinner;Private Pool Villa',
         'Luxury Car;4;Airport & villa transfers;7;Private AC with driver||SUV;4;Nusa Penida day trip;1;Shared AC',
         '50% advance to confirm honeymoon booking. Balance due 30 days before travel. Wire transfer accepted.',
         '45+ days: full refund. 30–44 days: 25% charge. 15–29 days: 50% charge. Less than 15 days: non-refundable.',
@@ -455,7 +455,7 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
         'Day 1: Arrive Jaipur — The Pink City||Arrive at Jaipur Airport. Check in to heritage hotel. Explore local bazaars and taste Rajasthani snacks. Welcome dinner.||Day 2: Jaipur Sightseeing||Visit Amber Fort (elephant ride), City Palace, Jantar Mantar observatory, and Hawa Mahal. Shopping at Johari Bazaar.||Day 3: Jaipur to Pushkar||Drive to Pushkar (3 hrs). Visit the sacred Brahma Temple and colorful Pushkar Lake ghats. Explore camel fair grounds. Overnight Pushkar.||Day 4: Pushkar to Jodhpur||Morning drive to Jodhpur (3.5 hrs). Check in to Blue City hotel. Afternoon visit Mehrangarh Fort with panoramic city views.||Day 5: Jodhpur — Blue City & Umaid Bhawan||Jaswant Thada cenotaph and Clock Tower market. Drive through blue-painted old city lanes. Visit Umaid Bhawan Palace museum.||Day 6: Jodhpur to Jaisalmer||Scenic desert drive (4.5 hrs). Check in to heritage haveli. Evening sunset at Sam Sand Dunes. Camel safari and cultural performance under stars.||Day 7: Jaisalmer — Golden Fort & Havelis||Explore Jaisalmer Fort, Patwon ki Haveli, and Bada Bagh cenotaphs. Afternoon shopping — folk art, textiles, and silver jewellery.||Day 8: Departure||Check out. Transfer to airport/station. Tour concludes with memories of royal Rajasthan.',
         'Oct–Mar',
         '',
-        'Jaipur;2;Rambagh Palace;Breakfast;Deluxe Room||Jodhpur;2;Umaid Bhawan Heritage Wing;Breakfast;Maharaja Suite||Jaisalmer;3;Suryagarh Jaisalmer;Half Board;Desert View Room',
+        'Jaipur;2;Rambagh Palace;Breakfast;Deluxe Room||Jodhpur;2;Umaid Bhawan Heritage Wing;Breakfast;Maharaja Suite||Jaisalmer;3;Suryagarh Jaisalmer;Breakfast + Lunch/Dinner;Desert View Room',
         'Innova Crysta;7;All intercity & sightseeing transfers;8;AC with English-speaking driver',
         '25% advance to confirm. 50% due 45 days before travel. Full balance due 21 days before departure.',
         '60+ days: full refund. 30–59 days: 20% charge. 15–29 days: 50% charge. Less than 15 days: non-refundable.',
@@ -539,7 +539,7 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
     const csv = [
       'destination,nights,hotel_name,meal_plan,room_type',
       '"Kuta Beach",2,"Fairfield by Marriott\nOr: The Sakala Resort",Breakfast,"Deluxe Room"',
-      '"Ubud",3,"Alaya Resort Ubud",Half Board,"Pool Villa"',
+      '"Ubud",3,"Alaya Resort Ubud",Breakfast + Lunch/Dinner,"Pool Villa"',
     ].join('\r\n')
     const a = document.createElement('a')
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
@@ -1561,7 +1561,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                   <span className="text-emerald-700 font-bold">Ubud</span><span className="text-orange-500 font-bold">;</span>
                   <span className="text-gray-600">3</span><span className="text-orange-500 font-bold">;</span>
                   <span className="text-gray-600">Alaya Resort</span><span className="text-orange-500 font-bold">;</span>
-                  <span className="text-gray-600">Half Board</span><span className="text-orange-500 font-bold">;</span>
+                  <span className="text-gray-600">Breakfast + Lunch/Dinner</span><span className="text-orange-500 font-bold">;</span>
                   <span className="text-gray-600">Pool Villa</span>
                   <span className="text-gray-400">&quot;</span>
                 </div>
@@ -1946,10 +1946,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                   <div className="w-28 flex-shrink-0 flex flex-col items-start gap-0.5">
                     <span className={`text-[10px] font-semibold uppercase tracking-wide ${updatedDate ? 'text-blue-400' : 'text-gray-400'}`}>{label}</span>
                     <span className="text-[11px] text-gray-600 font-medium leading-tight">
-                      {date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      {date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })}
                     </span>
                     <span className="text-[10px] text-gray-400 leading-tight">
-                      {date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                      {date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}
                     </span>
                   </div>
                 )

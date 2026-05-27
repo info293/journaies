@@ -39,6 +39,7 @@
     "@types/react-leaflet": "^2.8.3",
     "@types/uuid": "^10.0.0",
     "autoprefixer": "10.4.16",
+    "firebase-admin": "^13.10.0",
     "postcss": "8.4.31",
     "tailwindcss": "3.3.5",
     "typescript": "5.2.2"
