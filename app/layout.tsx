@@ -11,8 +11,8 @@ const playfair = Playfair_Display({
 })
 
 export const metadata: Metadata = {
-  title: 'B2B Portal - DMC & Travel Agent Portal',
-  description: 'B2B portal for DMC operators and travel agents',
+  title: 'Journaies - DMC & Travel Agent Portal',
+  description: 'Journaies — B2B portal for DMC operators and travel agents',
 }
 
 export default function RootLayout({

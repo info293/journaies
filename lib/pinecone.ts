@@ -1,18 +1,26 @@
 import { Pinecone } from '@pinecone-database/pinecone'
 import { generateEmbedding } from './embeddings'
 
-// Initialize Pinecone client
-const pinecone = new Pinecone({
-    apiKey: process.env.PINECONE_API_KEY!,
-})
-
 const INDEX_NAME = process.env.PINECONE_INDEX || 'travelzada-packages'
+
+// Lazy singleton — only created on first use so the build never crashes
+// when PINECONE_API_KEY is absent from the build environment.
+let _pinecone: Pinecone | null = null
+function getPinecone(): Pinecone {
+    if (!_pinecone) {
+        if (!process.env.PINECONE_API_KEY) {
+            throw new Error('Missing PINECONE_API_KEY environment variable')
+        }
+        _pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY })
+    }
+    return _pinecone
+}
 
 /**
  * Get the Pinecone index for travel packages
  */
 export function getIndex() {
-    return pinecone.index(INDEX_NAME)
+    return getPinecone().index(INDEX_NAME)
 }
 
 /**

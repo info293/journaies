@@ -721,7 +721,7 @@ export default function EmbedCode({ agentSlug }: Props) {
                 <li>Your DMC name and branding are shown at the top of the planner</li>
                 <li>Visitors plan trips, submit leads — all tracked in your dashboard</li>
                 <li>The URL stays as <span className="font-mono font-semibold">yourdomain.com{pageSlug}</span> — 100% your brand</li>
-                <li>No platform logo or branding visible to the visitor</li>
+                <li>No Journaies logo or branding visible to the visitor</li>
               </ul>
             </div>
           </>

@@ -1364,7 +1364,7 @@ export default function QuotationsManager({ agentId, agentSlug, agentName, curre
                         <span className="text-white text-base">&#9992;</span>
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-gray-900">B2B Portal</p>
+                        <p className="text-sm font-bold text-gray-900">Journaies</p>
                         <p className="text-[10px] text-gray-400">New Enquiry · Automated</p>
                       </div>
                     </div>
@@ -1720,7 +1720,7 @@ export default function QuotationsManager({ agentId, agentSlug, agentName, curre
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
                     <div className="absolute top-3 left-3">
                       <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full shadow ${isCustom ? 'bg-amber-400 text-white' : 'bg-white text-gray-800'}`}>
-                        {isCustom ? 'Custom' : 'Platform'}
+                        {isCustom ? 'Custom' : 'Journaies'}
                       </span>
                     </div>
                     <div className="absolute bottom-3 left-3 right-3">

@@ -148,7 +148,7 @@ export default function AgentRegisterPage() {
           {/* Logo */}
           <div className="flex items-center gap-2.5 mb-14">
             <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white font-bold text-lg">T</div>
-            <span className="text-white font-bold text-lg tracking-tight">B2B Portal</span>
+            <span className="text-white font-bold text-lg tracking-tight">Journaies</span>
             <span className="text-white/40 text-sm ml-1">Partners</span>
           </div>
 
@@ -201,7 +201,7 @@ export default function AgentRegisterPage() {
           {/* Mobile logo */}
           <div className="flex items-center gap-2 mb-8 lg:hidden">
             <div className="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center text-white font-bold">T</div>
-            <span className="font-bold text-gray-900">B2B Portal Partners</span>
+            <span className="font-bold text-gray-900">Journaies Partners</span>
           </div>
 
           <div className="bg-white rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/50 p-8">

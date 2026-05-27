@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     const langName = LANGUAGE_NAMES[language] || 'English'
     const langCode = language.split('-')[0]
 
-    let systemPrompt = `You are a knowledgeable and friendly travel assistant for this B2B travel platform based in India. You help travel agents understand travel packages and answer questions about them.
+    let systemPrompt = `You are a knowledgeable and friendly travel assistant for Journaies, a B2B travel platform based in India. You help travel agents understand travel packages and answer questions about them.
 
 CRITICAL LANGUAGE RULE: You MUST respond ONLY in ${langName}. No matter what language the user writes in, always reply in ${langName}.
 - If the language is Hindi, write in Devanagari script (हिंदी).
@@ -70,7 +70,7 @@ Star Category: ${packageDetails.starCategory}${packageDetails.overview ? `\nOver
 
 Focus your answers on this specific package. Help the agent understand highlights, selling points, ideal customer profile, and how to pitch this package to clients.`
     } else {
-      systemPrompt += `\n\nNo specific package is selected yet. Give general travel advice, answer questions about our services, or help the agent with sales tips.`
+      systemPrompt += `\n\nNo specific package is selected yet. Give general travel advice, answer questions about Journaies services, or help the agent with sales tips.`
     }
 
     const history = Array.isArray(conversation)

@@ -231,9 +231,9 @@ export default function AgentSettings({ agentId, agentSlug, onSaved, onLogout }:
           onClick={() => handleChange('fallbackToTravelzada', !form.fallbackToTravelzada)}
         >
           <div>
-            <p className="font-semibold text-gray-900 text-sm">Show platform packages as fallback</p>
+            <p className="font-semibold text-gray-900 text-sm">Show Journaies packages as fallback</p>
             <p className="text-xs text-gray-500 mt-0.5">
-              When you have no matching packages, show packages from the main catalog instead of an empty result.
+              When you have no matching packages, show packages from Journaies catalog instead of an empty result.
             </p>
           </div>
           {form.fallbackToTravelzada ? (

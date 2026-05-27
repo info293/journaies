@@ -351,7 +351,7 @@ export default function Analytics({ agentId, agentSlug, currency }: Props) {
           </div>
           <div>
             <p className="text-2xl font-bold">{sym}{data.commissionPaid.toLocaleString()}</p>
-            <p className="text-xs opacity-70 mt-1">Platform Commission</p>
+            <p className="text-xs opacity-70 mt-1">Journaies Commission</p>
           </div>
           <div>
             <p className="text-2xl font-bold">{sym}{data.netRevenue.toLocaleString()}</p>

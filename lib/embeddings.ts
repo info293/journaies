@@ -1,8 +1,17 @@
 import OpenAI from 'openai'
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-})
+// Lazy singleton — only created on first use so the build never crashes
+// when OPENAI_API_KEY is absent from the build environment.
+let _openai: OpenAI | null = null
+function getOpenAI(): OpenAI {
+    if (!_openai) {
+        if (!process.env.OPENAI_API_KEY) {
+            throw new Error('Missing OPENAI_API_KEY environment variable')
+        }
+        _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+    }
+    return _openai
+}
 
 /**
  * Generate embedding vector for a text string using OpenAI
@@ -10,7 +19,7 @@ const openai = new OpenAI({
  * @returns Array of 1536 numbers representing the text meaning
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
-    const response = await openai.embeddings.create({
+    const response = await getOpenAI().embeddings.create({
         model: 'text-embedding-3-small',
         input: text,
     })

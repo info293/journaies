@@ -37,7 +37,7 @@ export default function AiLoader() {
                     <div className="absolute inset-8 bg-white rounded-full flex items-center justify-center animate-pulse shadow-[0_0_30px_rgba(124,58,237,0.3)]">
                         <img
                             src="/images/logo/Travelzada Logo April (1).png"
-                            alt="B2B Portal"
+                            alt="Journaies"
                             className="w-16 h-auto object-contain"
                         />
                     </div>
