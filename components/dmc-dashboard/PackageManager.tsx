@@ -1993,7 +1993,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
       {/* Two-panel package editor */}
       {showForm && (() => {
         const basePrice = Number(form.pricePerPerson) || 0
-        const baseINR = basePrice * exchangeRate
+        const totalPriceVal = Number(form.totalPrice) || 0
+        const baseINR = totalPriceVal > 0 ? totalPriceVal : (basePrice * exchangeRate)
         const markup = markupEnabled ? (Number(markupPercent) || 0) : 0
         const finalPrice = baseINR * (1 + markup / 100)
         const currencyMeta = CURRENCIES.find(c => c.code === form.currency) || CURRENCIES[0]
