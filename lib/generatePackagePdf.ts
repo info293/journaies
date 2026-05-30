@@ -403,8 +403,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,san
         <tr>
           <th>Vehicle</th>
           <th>Seats</th>
-          <th>Route / Usage</th>
-          <th>Days</th>
         </tr>
       </thead>
       <tbody>
@@ -412,11 +410,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,san
         <tr>
           <td>
             <div class="vtype">${esc(v.vehicleType || '—')}</div>
-            ${v.notes ? `<div class="vnotes">${esc(v.notes)}</div>` : ''}
           </td>
           <td>${v.seats ? v.seats : '—'}</td>
-          <td>${esc(v.route || '—')}</td>
-          <td>${v.days ? `${v.days}D` : '—'}</td>
         </tr>`).join('')}
       </tbody>
     </table>

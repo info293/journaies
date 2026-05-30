@@ -405,8 +405,8 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
         '',
         // hotels: Destination;Nights;Hotel Name;Meal Plan;Room Type  — use || for multiple
         'Port Blair;1;Sinclairs Bayview;Breakfast;Standard Room||Havelock;4;Symphony Palms Beach Resort;Breakfast;Sea-facing Cottage',
-        // vehicles: Type;Seats;Route;Days;Notes  — use || for multiple
-        'Innova Crysta;7;Airport & port transfers;6;AC with driver',
+        // vehicles: Type;Seats  — use || for multiple
+        'Innova Crysta;7',
         '30% advance to confirm. Balance due 21 days before travel. Bank transfer / UPI accepted.',
         '30+ days: 25% charge. 15–29 days: 50% charge. 7–14 days: 75% charge. Less than 7 days: non-refundable.',
       ],
@@ -431,7 +431,7 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
         'Year Round',
         '',
         'Seminyak;2;W Bali — Seminyak;Breakfast;Retreat Pool Suite||Ubud;4;Alaya Resort Ubud;Breakfast + Lunch/Dinner;Private Pool Villa',
-        'Luxury Car;4;Airport & villa transfers;7;Private AC with driver||SUV;4;Nusa Penida day trip;1;Shared AC',
+        'Luxury Car;4||SUV;4',
         '50% advance to confirm honeymoon booking. Balance due 30 days before travel. Wire transfer accepted.',
         '45+ days: full refund. 30–44 days: 25% charge. 15–29 days: 50% charge. Less than 15 days: non-refundable.',
       ],
@@ -456,7 +456,7 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
         'Oct–Mar',
         '',
         'Jaipur;2;Rambagh Palace;Breakfast;Deluxe Room||Jodhpur;2;Umaid Bhawan Heritage Wing;Breakfast;Maharaja Suite||Jaisalmer;3;Suryagarh Jaisalmer;Breakfast + Lunch/Dinner;Desert View Room',
-        'Innova Crysta;7;All intercity & sightseeing transfers;8;AC with English-speaking driver',
+        'Innova Crysta;7',
         '25% advance to confirm. 50% due 45 days before travel. Full balance due 21 days before departure.',
         '60+ days: full refund. 30–59 days: 20% charge. 15–29 days: 50% charge. Less than 15 days: non-refundable.',
       ],
@@ -647,8 +647,7 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
     if (vehicleEntries.length > 0) {
       lines.push('🚗 *Vehicles & Transfers*')
       vehicleEntries.forEach(v => {
-        lines.push(`  🚙 *${v.vehicleType}${v.seats ? ` (${v.seats} seats)` : ''}*${v.route ? ` — ${v.route}` : ''}${v.days > 1 ? ` · ${v.days} days` : ''}`)
-        if (v.notes) lines.push(`     ${v.notes}`)
+        lines.push(`  🚙 *${v.vehicleType}${v.seats ? ` (${v.seats} seats)` : ''}*`)
       })
       lines.push('')
     }
@@ -1431,7 +1430,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
   ${hotelEntries.length > 0 ? `<div class="sec"><div class="stitle">Hotels &amp; Accommodation</div><table class="hoteltable"><thead><tr><th>Destination</th><th>Hotel(s)</th><th>Meal Plan</th><th>Room Type</th></tr></thead><tbody>${hotelEntries.map((h)=>`<tr><td><strong>${esc(h.destination)}${h.nights?` (${h.nights}N)`:''}</strong></td><td>${esc(h.hotels)}</td><td>${esc(h.mealPlan)}</td><td>${esc(h.roomType)}</td></tr>`).join('')}</tbody></table></div>` : ''}
 
   <!-- Vehicles & Transfers -->
-  ${vehicleEntries.length > 0 ? `<div class="sec"><div class="stitle">Vehicles &amp; Transfers</div><table class="vehicletable"><thead><tr><th>Vehicle Type</th><th>Seats</th><th>Route / Transfers</th><th>Days</th><th>Notes</th></tr></thead><tbody>${vehicleEntries.map((v)=>`<tr><td><strong>${esc(v.vehicleType)}</strong></td><td>${v.seats}</td><td>${esc(v.route)}</td><td>${v.days}</td><td>${esc(v.notes)}</td></tr>`).join('')}</tbody></table></div>` : ''}
+  ${vehicleEntries.length > 0 ? `<div class="sec"><div class="stitle">Vehicles &amp; Transfers</div><table class="vehicletable"><thead><tr><th>Vehicle Type</th><th>Seats</th></tr></thead><tbody>${vehicleEntries.map((v)=>`<tr><td><strong>${esc(v.vehicleType)}</strong></td><td>${v.seats}</td></tr>`).join('')}</tbody></table></div>` : ''}
 
   <!-- Master Itinerary -->
   ${dayItems.length ? `<div class="sec"><div class="stitle">Master Itinerary</div>${dayItems.map((d,i)=>`<div class="dayitem"><div class="dayleft"><div class="daynum">${String(i+1).padStart(2,'0')}</div>${i<dayItems.length-1?'<div class="dayline"></div>':''}</div><div class="daycontent"><div class="daytitle">${esc(d.title)}</div>${d.description?`<div class="daydesc">${esc(d.description).replace(/\n/g,'<br>')}</div>`:''}</div></div>`).join('')}</div>` : ''}
@@ -1542,7 +1541,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
 
           {/* Hotels & Vehicles callout */}
           <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5">
-            <p className="text-xs font-bold text-emerald-800 mb-2">🏨🚗 How to format Hotels & Vehicles in CSV</p>
+            <p className="text-xs font-bold text-emerald-800 mb-2">🏨🚗 How to format Hotels &amp; Vehicles in CSV</p>
             <p className="text-xs text-emerald-700 mb-2.5">
               Use <code className="bg-emerald-100 px-1.5 py-0.5 rounded font-mono font-bold text-emerald-800">;</code> to separate fields within one entry, and{' '}
               <code className="bg-emerald-100 px-1.5 py-0.5 rounded font-mono font-bold text-emerald-800">||</code> to add multiple hotels or vehicles in one cell:
@@ -1571,23 +1570,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                 <div className="bg-white border border-blue-200 rounded-lg p-2.5 font-mono text-[11px] text-gray-700 overflow-x-auto whitespace-nowrap">
                   <span className="text-gray-400">&quot;</span>
                   <span className="text-blue-700 font-bold">Innova Crysta</span><span className="text-orange-500 font-bold">;</span>
-                  <span className="text-gray-600">7</span><span className="text-orange-500 font-bold">;</span>
-                  <span className="text-gray-600">Airport transfers</span><span className="text-orange-500 font-bold">;</span>
-                  <span className="text-gray-600">1</span><span className="text-orange-500 font-bold">;</span>
-                  <span className="text-gray-600">AC with driver</span>
+                  <span className="text-gray-600">7</span>
                   <span className="text-orange-500 font-bold">||</span>
                   <span className="text-blue-700 font-bold">Tempo Traveller (12 Seater)</span><span className="text-orange-500 font-bold">;</span>
-                  <span className="text-gray-600">12</span><span className="text-orange-500 font-bold">;</span>
-                  <span className="text-gray-600">All sightseeing</span><span className="text-orange-500 font-bold">;</span>
-                  <span className="text-gray-600">5</span><span className="text-orange-500 font-bold">;</span>
-                  <span className="text-gray-600">AC comfortable</span>
+                  <span className="text-gray-600">12</span>
                   <span className="text-gray-400">&quot;</span>
                 </div>
               </div>
             </div>
             <div className="mt-2.5 flex flex-wrap gap-1.5 text-[11px] text-emerald-700">
               <span className="bg-emerald-100 border border-emerald-200 rounded-full px-2.5 py-0.5">✓ Fields: Destination ; Nights ; Hotel Name ; Meal Plan ; Room Type</span>
-              <span className="bg-blue-100 border border-blue-200 rounded-full px-2.5 py-0.5 text-blue-700">✓ Vehicle fields: Type ; Seats ; Route ; Days ; Notes</span>
+              <span className="bg-blue-100 border border-blue-200 rounded-full px-2.5 py-0.5 text-blue-700">✓ Vehicle fields: Type ; Seats</span>
               <span className="bg-emerald-100 border border-emerald-200 rounded-full px-2.5 py-0.5">✓ Use <code className="font-bold">||</code> between multiple entries</span>
             </div>
           </div>
@@ -1625,7 +1618,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                   ['seasonal_availability', 'No', 'Oct–May / Year Round'],
                   ['primary_image_url', 'No', 'https://cdn.example.com/package.jpg'],
                   ['hotels', 'No', 'Dest;Nights;Hotel Name;Meal Plan;Room Type  — use || to add multiple hotels'],
-                  ['vehicles', 'No', 'Vehicle Type;Seats;Route;Days;Notes  — use || to add multiple vehicles'],
+                  ['vehicles', 'No', 'Vehicle Type;Seats  — use || to add multiple vehicles'],
                   ['payment_policy', 'No', '30% advance to confirm. Balance due 21 days before travel.'],
                   ['cancellation_policy', 'No', '30+ days: 25% charge. 15–29 days: 50% charge. Less than 7 days: non-refundable.'],
                 ].map(([col, req, ex]) => (
@@ -1658,7 +1651,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
       )}
 
       {/* CSV upload result */}
-      {csvResult && (() => {
+      {csvResult && ((csvResult) => {
         const errors   = csvResult.issues.filter(i => i.severity === 'error')
         const warnings = csvResult.issues.filter(i => i.severity === 'warning')
         const fileIssues = csvResult.issues.filter(i => i.row === null)
@@ -1757,7 +1750,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
             )}
           </div>
         )
-      })()}
+      })(csvResult!)}
 
       {/* Package list */}
       {packages.length === 0 ? (
@@ -2512,9 +2505,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                         <tr className="border-b border-gray-100">
                           <th className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-2 pr-3">Vehicle Type</th>
                           <th className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-2 pr-3 w-14">Seats</th>
-                          <th className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-2 pr-3">Route / Transfers</th>
-                          <th className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-2 pr-3 w-12">Days</th>
-                          <th className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-2 pr-3">Notes</th>
                           <th className="pb-2 w-6" />
                         </tr>
                       </thead>
@@ -2540,31 +2530,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                                 value={v.seats}
                                 onChange={e => updateVehicleEntry(v.id, 'seats', Number(e.target.value))}
                                 className="w-full text-sm text-center text-gray-800 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-blue-400"
-                              />
-                            </td>
-                            <td className="py-2 pr-3">
-                              <input
-                                value={v.route}
-                                onChange={e => updateVehicleEntry(v.id, 'route', e.target.value)}
-                                placeholder="Airport transfers, all sightseeing"
-                                className="w-full text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-blue-400"
-                              />
-                            </td>
-                            <td className="py-2 pr-3">
-                              <input
-                                type="number"
-                                min="1"
-                                value={v.days}
-                                onChange={e => updateVehicleEntry(v.id, 'days', Number(e.target.value))}
-                                className="w-full text-sm text-center text-gray-800 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-blue-400"
-                              />
-                            </td>
-                            <td className="py-2 pr-3">
-                              <input
-                                value={v.notes}
-                                onChange={e => updateVehicleEntry(v.id, 'notes', e.target.value)}
-                                placeholder="AC vehicle, with driver"
-                                className="w-full text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-blue-400"
                               />
                             </td>
                             <td className="py-2">
@@ -3180,8 +3145,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                             <tr className="bg-blue-50 border-b border-blue-100">
                               <th className="text-left font-bold text-blue-700 px-3 py-2">Vehicle</th>
                               <th className="text-left font-bold text-blue-700 px-3 py-2">Seats</th>
-                              <th className="text-left font-bold text-blue-700 px-3 py-2">Route</th>
-                              <th className="text-left font-bold text-blue-700 px-3 py-2">Days</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-blue-50">
@@ -3189,8 +3152,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                               <tr key={v.id} className={i % 2 === 0 ? 'bg-white' : 'bg-blue-50/30'}>
                                 <td className="px-3 py-2 font-semibold text-gray-800">{v.vehicleType}</td>
                                 <td className="px-3 py-2 text-gray-600">{v.seats}</td>
-                                <td className="px-3 py-2 text-gray-700">{v.route}</td>
-                                <td className="px-3 py-2 text-gray-600">{v.days}</td>
                               </tr>
                             ))}
                           </tbody>

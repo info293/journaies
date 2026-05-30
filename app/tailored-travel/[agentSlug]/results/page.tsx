@@ -674,8 +674,6 @@ export default function AgentResultsPage() {
                       <tr className="border-b border-gray-100">
                         <th className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wide pb-2 pr-4">Vehicle</th>
                         <th className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wide pb-2 pr-4">Seats</th>
-                        <th className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wide pb-2 pr-4">Route / Usage</th>
-                        <th className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wide pb-2">Days</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
@@ -683,11 +681,8 @@ export default function AgentResultsPage() {
                         <tr key={i}>
                           <td className="py-2.5 pr-4">
                             <p className="font-semibold text-gray-900">{v.vehicleType || '—'}</p>
-                            {v.notes && <p className="text-xs text-gray-400 mt-0.5">{v.notes}</p>}
                           </td>
                           <td className="py-2.5 pr-4 text-gray-600">{v.seats || '—'}</td>
-                          <td className="py-2.5 pr-4 text-gray-700">{v.route || '—'}</td>
-                          <td className="py-2.5 text-gray-600">{v.days ? `${v.days}D` : '—'}</td>
                         </tr>
                       ))}
                     </tbody>
