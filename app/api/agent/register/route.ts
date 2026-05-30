@@ -6,6 +6,42 @@ import {
 } from 'firebase/firestore'
 import { sendMail, buildDmcSignupEmail } from '@/lib/mailer'
 
+// GET /api/agent/register?slug=agentSlug — look up agent by slug (used by tailored-travel page)
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const slug = searchParams.get('slug')
+
+    if (!slug) {
+      return NextResponse.json({ error: 'slug is required' }, { status: 400 })
+    }
+
+    const q = query(collection(db, 'agents'), where('agentSlug', '==', slug))
+    const snap = await getDocs(q)
+
+    if (snap.empty) {
+      return NextResponse.json({ error: 'Agent not found' }, { status: 404 })
+    }
+
+    const agentDoc = snap.docs[0]
+    const data = agentDoc.data()
+
+    return NextResponse.json({
+      agent: {
+        id: agentDoc.id,
+        agentSlug: data.agentSlug,
+        companyName: data.companyName,
+        contactName: data.contactName,
+        logoUrl: data.logoUrl || null,
+        status: data.status,
+      }
+    })
+  } catch (error: any) {
+    console.error('[Agent Register GET] Error:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
+
 function slugify(text: string): string {
   return text
     .toLowerCase()
