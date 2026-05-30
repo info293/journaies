@@ -124,7 +124,13 @@ export default function StepDmc2Cities({
 
   const totalTravelers = (groupSize.adults || 0) + (groupSize.children || 0) + (groupSize.infants || 0)
   const noPackagesFound = hotelIncluded !== null && matchingPackages.length === 0
-  const canSubmit = hotelIncluded !== null && matchingPackages.length > 0
+  const canSubmit = hotelIncluded !== null
+
+  // Packages that match nights + cities but ignore hotel filter — shown when hotel filter yields 0
+  const packagesIgnoringHotel = useMemo(
+    () => filterPackages(allPackages, selectedNights, includedCities, null, []),
+    [allPackages.length, selectedNights, includedCities.join(',')]
+  )
 
   const paxRows = [
     { field: 'adults'   as const, label: 'Adults',   sub: 'Age 12+',  min: 1 },
@@ -296,20 +302,87 @@ export default function StepDmc2Cities({
           </div>
         </div>
 
-        {/* ── No packages warning ── */}
+        {/* ── Matching packages preview ── */}
+        {hotelIncluded !== null && matchingPackages.length > 0 && (
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="px-4 pt-4 pb-2 flex items-center gap-2 border-b border-gray-50">
+              <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.15em]">
+                {matchingPackages.length} Matching Package{matchingPackages.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+            <ul className="divide-y divide-gray-50">
+              {matchingPackages.map((pkg: any) => (
+                <li key={pkg.id} className="flex items-center justify-between px-4 py-2.5 gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-gray-800 truncate">{pkg.title || pkg.destination}</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">
+                      {pkg.durationDays}D / {pkg.durationNights}N
+                      {pkg.starCategory && pkg.starCategory.toLowerCase() !== 'none' && ` · ${pkg.starCategory}`}
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-bold text-primary bg-primary/8 px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">
+                    {pkg.durationNights}N
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* ── No exact match: show available packages so user knows what's there ── */}
         {noPackagesFound && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-4 flex gap-3 items-start">
-            <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl overflow-hidden">
+            <div className="px-4 py-3 flex gap-3 items-start">
+              <div className="w-7 h-7 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg className="w-3.5 h-3.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-amber-800">
+                  {hotelIncluded === false ? 'No land-only packages for this selection' : 'No packages match this hotel category'}
+                </p>
+                <p className="text-xs text-amber-600 mt-0.5 leading-relaxed">
+                  {hotelIncluded === false
+                    ? <>All available packages include hotel. Switch to <span className="font-bold">With Hotel</span> to proceed.</>
+                    : <>Try selecting a different star category below.</>
+                  }
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-bold text-amber-800">No packages found</p>
-              <p className="text-xs text-amber-600 mt-0.5 leading-relaxed">
-                No packages match your current selection. Try switching to <span className="font-bold">Without Hotel</span> or adjust your city and nights choices in the previous step.
-              </p>
-            </div>
+
+            {/* Show available packages (ignoring hotel filter) so user can see what exists */}
+            {packagesIgnoringHotel.length > 0 && (
+              <div className="border-t border-amber-200 bg-white/60">
+                <p className="px-4 pt-2.5 pb-1 text-[10px] font-black text-amber-700 uppercase tracking-[0.12em]">
+                  Available packages for {selectedNights} nights
+                </p>
+                <ul className="divide-y divide-amber-100">
+                  {packagesIgnoringHotel.map((pkg: any) => (
+                    <li key={pkg.id} className="flex items-center justify-between px-4 py-2 gap-3">
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-gray-800 truncate">{pkg.title || pkg.destination}</p>
+                        <p className="text-[10px] text-gray-400 mt-0.5">
+                          {pkg.durationDays}D / {pkg.durationNights}N
+                        </p>
+                      </div>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0 ${
+                        pkg.starCategory && pkg.starCategory.toLowerCase() !== 'none'
+                          ? 'bg-primary/10 text-primary'
+                          : 'bg-gray-100 text-gray-500'
+                      }`}>
+                        {pkg.starCategory && pkg.starCategory.toLowerCase() !== 'none' ? pkg.starCategory : 'Land only'}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
 

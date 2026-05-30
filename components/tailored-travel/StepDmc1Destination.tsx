@@ -233,7 +233,7 @@ export default function StepDmc1Destination({
       snap.forEach(doc => {
         const d = doc.data()
         const pkgDest = (d.destination || '').trim().toLowerCase()
-        if (!pkgDest.includes(sel) && !sel.includes(pkgDest)) return
+        if (pkgDest !== sel) return
 
         packages.push({ id: doc.id, ...d })
 

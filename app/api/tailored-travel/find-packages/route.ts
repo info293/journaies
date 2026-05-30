@@ -238,7 +238,7 @@ export async function POST(request: Request) {
                 if (
                     data.destination &&
                     requestedDestinations.some((dest: string) =>
-                        data.destination.toLowerCase().includes(dest)
+                        data.destination.toLowerCase().trim() === dest.trim()
                     )
                 ) {
                     allPackages.push({
