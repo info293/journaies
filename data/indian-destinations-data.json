@@ -1,0 +1,968 @@
+{
+  "destinations": [
+    {
+      "name": "Goa",
+      "country": "India",
+      "description": "India's party capital with pristine beaches, Portuguese heritage, and a laid-back vibe. Perfect for beach lovers, nightlife enthusiasts, and history buffs.",
+      "image": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&q=80",
+      "slug": "goa",
+      "featured": true,
+      "bestTimeToVisit": "November to February (peak season)",
+      "duration": "3-5 days recommended",
+      "currency": "Indian Rupee (INR)",
+      "language": "Konkani, English, Hindi",
+      "highlights": [
+        "Baga Beach",
+        "Old Goa churches",
+        "Anjuna Flea Market",
+        "Dudhsagar Falls",
+        "Fort Aguada",
+        "Spice plantations"
+      ],
+      "activities": [
+        "Beach parties",
+        "Water sports",
+        "Heritage tours",
+        "Casino visits",
+        "Spice plantation tours",
+        "Sunset cruises"
+      ],
+      "budgetRange": {
+        "budget": "₹15,000 - ₹25,000",
+        "midRange": "₹25,000 - ₹45,000",
+        "luxury": "₹45,000+"
+      },
+      "hotelTypes": [
+        "Beach shacks",
+        "Resorts",
+        "Heritage hotels",
+        "Luxury villas"
+      ],
+      "packageIds": [
+        "DEST_GOA_001",
+        "DEST_GOA_002",
+        "DEST_GOA_003"
+      ]
+    },
+    {
+      "name": "Kerala",
+      "country": "India",
+      "description": "God's Own Country - famous for backwaters, tea plantations, Ayurveda, and pristine nature. A perfect blend of culture, wellness, and natural beauty.",
+      "image": "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=1200&q=80",
+      "slug": "kerala",
+      "featured": true,
+      "bestTimeToVisit": "October to March (pleasant weather)",
+      "duration": "5-7 days recommended",
+      "currency": "Indian Rupee (INR)",
+      "language": "Malayalam, English",
+      "highlights": [
+        "Alleppey backwaters",
+        "Munnar tea gardens",
+        "Kochi Fort",
+        "Wayanad wildlife",
+        "Kovalam Beach",
+        "Periyar National Park"
+      ],
+      "activities": [
+        "Houseboat cruises",
+        "Ayurveda treatments",
+        "Tea plantation tours",
+        "Wildlife safaris",
+        "Beach relaxation",
+        "Spice garden visits"
+      ],
+      "budgetRange": {
+        "budget": "₹20,000 - ₹35,000",
+        "midRange": "₹35,000 - ₹60,000",
+        "luxury": "₹60,000+"
+      },
+      "hotelTypes": [
+        "Houseboats",
+        "Resorts",
+        "Heritage homestays",
+        "Ayurveda retreats"
+      ],
+      "packageIds": [
+        "DEST_KERALA_001",
+        "DEST_KERALA_002"
+      ]
+    },
+    {
+      "name": "Rajasthan",
+      "country": "India",
+      "description": "The Land of Kings - majestic forts, palaces, deserts, and rich cultural heritage. Experience royal India at its finest.",
+      "image": "https://images.unsplash.com/photo-1539650116574-75c0c6d73a6e?w=1200&q=80",
+      "slug": "rajasthan",
+      "featured": true,
+      "bestTimeToVisit": "October to March (winter season)",
+      "duration": "7-10 days recommended",
+      "currency": "Indian Rupee (INR)",
+      "language": "Hindi, Rajasthani, English",
+      "highlights": [
+        "Jaipur City Palace",
+        "Udaipur Lake Palace",
+        "Jaisalmer Fort",
+        "Pushkar Camel Fair",
+        "Ranthambore National Park",
+        "Jodhpur Blue City"
+      ],
+      "activities": [
+        "Palace tours",
+        "Desert safaris",
+        "Camel rides",
+        "Cultural shows",
+        "Shopping for handicrafts",
+        "Wildlife safaris"
+      ],
+      "budgetRange": {
+        "budget": "₹25,000 - ₹40,000",
+        "midRange": "₹40,000 - ₹70,000",
+        "luxury": "₹70,000+"
+      },
+      "hotelTypes": [
+        "Heritage palaces",
+        "Desert camps",
+        "Boutique hotels",
+        "Luxury resorts"
+      ],
+      "packageIds": [
+        "DEST_RAJASTHAN_001",
+        "DEST_RAJASTHAN_002"
+      ]
+    },
+    {
+      "name": "Manali",
+      "country": "India",
+      "description": "A hill station in the Himalayas, perfect for adventure sports and mountain views. Gateway to snow-capped peaks and thrilling activities.",
+      "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80",
+      "slug": "manali",
+      "featured": false,
+      "bestTimeToVisit": "March to June, October to December",
+      "duration": "4-6 days recommended",
+      "currency": "Indian Rupee (INR)",
+      "language": "Hindi, English",
+      "highlights": [
+        "Rohtang Pass",
+        "Solang Valley",
+        "Hadimba Temple",
+        "Old Manali",
+        "Beas River",
+        "Mall Road"
+      ],
+      "activities": [
+        "Skiing",
+        "Paragliding",
+        "Trekking",
+        "River rafting",
+        "Mountain biking",
+        "Camping"
+      ],
+      "budgetRange": {
+        "budget": "₹15,000 - ₹30,000",
+        "midRange": "₹30,000 - ₹50,000",
+        "luxury": "₹50,000+"
+      },
+      "hotelTypes": [
+        "Mountain resorts",
+        "Homestays",
+        "Luxury hotels",
+        "Adventure camps"
+      ],
+      "packageIds": [
+        "DEST_MANALI_001"
+      ]
+    },
+    {
+      "name": "Darjeeling",
+      "country": "India",
+      "description": "Queen of the Hills - famous for tea plantations, toy train, and stunning views of Kanchenjunga. A serene mountain retreat.",
+      "image": "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=1200&q=80",
+      "slug": "darjeeling",
+      "featured": false,
+      "bestTimeToVisit": "March to May, October to November",
+      "duration": "3-4 days recommended",
+      "currency": "Indian Rupee (INR)",
+      "language": "Nepali, English, Hindi",
+      "highlights": [
+        "Tiger Hill sunrise",
+        "Darjeeling Himalayan Railway",
+        "Tea plantations",
+        "Batasia Loop",
+        "Peace Pagoda",
+        "Observatory Hill"
+      ],
+      "activities": [
+        "Toy train ride",
+        "Tea estate tours",
+        "Sunrise viewing",
+        "Trekking",
+        "Shopping for tea",
+        "Monastery visits"
+      ],
+      "budgetRange": {
+        "budget": "₹12,000 - ₹25,000",
+        "midRange": "₹25,000 - ₹45,000",
+        "luxury": "₹45,000+"
+      },
+      "hotelTypes": [
+        "Heritage hotels",
+        "Tea estate bungalows",
+        "Mountain resorts",
+        "Boutique hotels"
+      ],
+      "packageIds": []
+    },
+    {
+      "name": "Shimla",
+      "country": "India",
+      "description": "The summer capital of British India - colonial architecture, scenic views, and pleasant weather. Perfect for a family getaway.",
+      "image": "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=1200&q=80",
+      "slug": "shimla",
+      "featured": false,
+      "bestTimeToVisit": "March to June, September to November",
+      "duration": "3-5 days recommended",
+      "currency": "Indian Rupee (INR)",
+      "language": "Hindi, English",
+      "highlights": [
+        "The Ridge",
+        "Jakhoo Temple",
+        "Mall Road",
+        "Kufri",
+        "Christ Church",
+        "Viceregal Lodge"
+      ],
+      "activities": [
+        "Toy train journey",
+        "Ice skating",
+        "Trekking",
+        "Shopping",
+        "Heritage walks",
+        "Adventure activities"
+      ],
+      "budgetRange": {
+        "budget": "₹15,000 - ₹28,000",
+        "midRange": "₹28,000 - ₹50,000",
+        "luxury": "₹50,000+"
+      },
+      "hotelTypes": [
+        "Heritage hotels",
+        "Mountain resorts",
+        "Boutique hotels",
+        "Luxury properties"
+      ],
+      "packageIds": []
+    },
+    {
+      "name": "Varanasi",
+      "country": "India",
+      "description": "The spiritual capital of India - ancient ghats, Ganga Aarti, and rich cultural heritage. A transformative experience for the soul.",
+      "image": "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=1200&q=80",
+      "slug": "varanasi",
+      "featured": false,
+      "bestTimeToVisit": "October to March (pleasant weather)",
+      "duration": "2-3 days recommended",
+      "currency": "Indian Rupee (INR)",
+      "language": "Hindi, English",
+      "highlights": [
+        "Ganga Aarti",
+        "Dashashwamedh Ghat",
+        "Kashi Vishwanath Temple",
+        "Sarnath",
+        "Boat ride on Ganges",
+        "Old city lanes"
+      ],
+      "activities": [
+        "Ganga Aarti",
+        "Boat rides",
+        "Temple visits",
+        "Spiritual walks",
+        "Shopping for silk",
+        "Yoga and meditation"
+      ],
+      "budgetRange": {
+        "budget": "₹8,000 - ₹18,000",
+        "midRange": "₹18,000 - ₹35,000",
+        "luxury": "₹35,000+"
+      },
+      "hotelTypes": [
+        "Heritage hotels",
+        "Riverside properties",
+        "Boutique hotels",
+        "Luxury resorts"
+      ],
+      "packageIds": []
+    },
+    {
+      "name": "Agra",
+      "country": "India",
+      "description": "Home to the iconic Taj Mahal - one of the Seven Wonders of the World. A city of love, history, and architectural marvels.",
+      "image": "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=1200&q=80",
+      "slug": "agra",
+      "featured": true,
+      "bestTimeToVisit": "October to March (best weather)",
+      "duration": "2-3 days recommended",
+      "currency": "Indian Rupee (INR)",
+      "language": "Hindi, English",
+      "highlights": [
+        "Taj Mahal",
+        "Agra Fort",
+        "Fatehpur Sikri",
+        "Itmad-ud-Daulah",
+        "Mehtab Bagh",
+        "Akbar's Tomb"
+      ],
+      "activities": [
+        "Taj Mahal visit",
+        "Fort tours",
+        "Heritage walks",
+        "Shopping for marble",
+        "Sunset viewing",
+        "Cultural shows"
+      ],
+      "budgetRange": {
+        "budget": "₹10,000 - ₹20,000",
+        "midRange": "₹20,000 - ₹40,000",
+        "luxury": "₹40,000+"
+      },
+      "hotelTypes": [
+        "Heritage hotels",
+        "Luxury resorts",
+        "Boutique hotels",
+        "5-star properties"
+      ],
+      "packageIds": []
+    }
+  ],
+  "packages": [
+    {
+      "Destination_ID": "DEST_GOA_001",
+      "Destination_Name": "Goa, India",
+      "Overview": "A perfect beach holiday for couples with pristine beaches, water sports, and vibrant nightlife.",
+      "Duration": "4 Nights / 5 Days",
+      "Mood": "Relax",
+      "Occasion": "Beach Holiday",
+      "Travel_Type": "Couple",
+      "Budget_Category": "Mid",
+      "Price_Range_INR": "₹35,000 – ₹45,000 per couple",
+      "Theme": "Beach / Nightlife / Relax",
+      "Adventure_Level": "Moderate",
+      "Stay_Type": "Resort",
+      "Star_Category": "4-Star",
+      "Meal_Plan": "Breakfast Only",
+      "Group_Size": "2 Adults",
+      "Child_Friendly": "Yes",
+      "Elderly_Friendly": "Yes",
+      "Language_Preference": "English, Hindi",
+      "Seasonality": "November to February",
+      "Hotel_Examples": "Taj Exotica Goa, Novotel Goa Dona Sylvia",
+      "Inclusions": "4★ beachfront resort stay with breakfast, airport transfers, water sports (jet ski, parasailing), North Goa sightseeing, casino entry, sunset cruise",
+      "Exclusions": "Flights, lunches, dinners, personal expenses",
+      "Day_Wise_Itinerary": "Day 1: Arrive & beach relaxation | Day 2: North Goa tour (Fort Aguada, Anjuna Beach) | Day 3: Water sports & water park | Day 4: South Goa churches & spice plantation | Day 5: Departure",
+      "Rating": "4.7/5",
+      "Location_Breakup": "4N North Goa",
+      "Airport_Code": "GOI",
+      "Transfer_Type": "Private",
+      "Currency": "INR",
+      "Climate_Type": "Tropical",
+      "Safety_Score": "9/10",
+      "Sustainability_Score": "7/10",
+      "Ideal_Traveler_Persona": "Couples seeking beach fun and nightlife",
+      "Created_By": "Travelzada",
+      "Last_Updated": "2025-11-22",
+      "Slug": "goa-beach-couple-escape",
+      "Primary_Image_URL": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&q=80",
+      "Booking_URL": "https://travelzada.com/packages/DEST_GOA_001",
+      "Price_Min_INR": 35000,
+      "Price_Max_INR": 45000,
+      "Duration_Nights": 4,
+      "Duration_Days": 5,
+      "SEO_Title": "Goa Beach Holiday Package | 4-Night Couple Escape with Water Sports",
+      "SEO_Description": "Experience the best of Goa with a 4-night beachfront resort stay, water sports, North Goa sightseeing, and vibrant nightlife.",
+      "SEO_Keywords": "Goa package, Goa beach holiday, couple trip Goa, water sports Goa",
+      "Meta_Image_URL": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&q=80",
+      "Guest_Reviews": [
+        {
+          "name": "Rahul & Priya",
+          "content": "Amazing beach holiday! The water sports were thrilling and the resort was perfect for a romantic getaway.",
+          "date": "15 November 2025",
+          "rating": "5/5"
+        },
+        {
+          "name": "Amit Sharma",
+          "content": "Great value for money. The North Goa tour was well organized and the beaches were beautiful.",
+          "date": "10 November 2025",
+          "rating": "4.5/5"
+        }
+      ],
+      "Booking_Policies": {
+        "booking": ["Instant confirmation", "Flexible dates", "24/7 support"],
+        "payment": ["Pay in instalments", "Zero cost EMI available", "Secure transactions"],
+        "cancellation": ["Free cancellation up to 7 days before travel", "Partial refund available", "Contact for details"]
+      },
+      "FAQ_Items": [
+        {
+          "question": "What is the best time to visit Goa?",
+          "answer": "November to February is the peak season with pleasant weather, clear skies, and perfect beach conditions. Avoid monsoon season (June to September)."
+        },
+        {
+          "question": "Do I need a visa for Goa?",
+          "answer": "No visa required for Indian citizens. International travelers should check visa requirements based on their nationality."
+        },
+        {
+          "question": "Are water sports included in the package?",
+          "answer": "Yes, the package includes jet skiing and parasailing. Additional water sports can be booked at extra cost."
+        }
+      ],
+      "Why_Book_With_Us": [
+        {
+          "label": "Best Price Guarantee",
+          "description": "Direct contracts with premium beachfront resorts"
+        },
+        {
+          "label": "24/7 Support",
+          "description": "Dedicated trip concierge on WhatsApp & call"
+        },
+        {
+          "label": "Instant Confirmation",
+          "description": "Travel docs delivered straight to inbox"
+        },
+        {
+          "label": "Flexible Payments",
+          "description": "Pay in secure instalments with zero cost EMI"
+        }
+      ]
+    },
+    {
+      "Destination_ID": "DEST_GOA_002",
+      "Destination_Name": "Goa, India",
+      "Overview": "A family-friendly beach vacation with kid-friendly activities, water parks, and comfortable resort stays.",
+      "Duration": "5 Nights / 6 Days",
+      "Mood": "Explore",
+      "Occasion": "Family Vacation",
+      "Travel_Type": "Family",
+      "Budget_Category": "Mid",
+      "Price_Range_INR": "₹55,000 – ₹70,000 per family of 3",
+      "Theme": "Beach / Family / Adventure",
+      "Adventure_Level": "Light",
+      "Stay_Type": "Resort",
+      "Star_Category": "4-Star",
+      "Meal_Plan": "Breakfast Only",
+      "Group_Size": "2 Adults + 1 Child",
+      "Child_Friendly": "Yes",
+      "Elderly_Friendly": "Yes",
+      "Language_Preference": "English, Hindi",
+      "Seasonality": "November to February",
+      "Hotel_Examples": "Hard Rock Hotel Goa, Novotel Goa Shrem",
+      "Inclusions": "5N family-friendly resort stay with breakfast, airport transfers, water park entry, dolphin watching cruise, spice plantation tour, Old Goa churches visit",
+      "Exclusions": "Flights, lunches, dinners, personal expenses",
+      "Day_Wise_Itinerary": "Day 1: Arrive & resort check-in | Day 2: Water park & beach | Day 3: Dolphin watching & Old Goa | Day 4: Spice plantation & shopping | Day 5: Beach activities | Day 6: Departure",
+      "Rating": "4.6/5",
+      "Location_Breakup": "5N North Goa",
+      "Airport_Code": "GOI",
+      "Transfer_Type": "Private",
+      "Currency": "INR",
+      "Climate_Type": "Tropical",
+      "Safety_Score": "9/10",
+      "Sustainability_Score": "7.5/10",
+      "Ideal_Traveler_Persona": "Families with children seeking beach fun and activities",
+      "Created_By": "Travelzada",
+      "Last_Updated": "2025-11-22",
+      "Slug": "goa-family-beach-vacation",
+      "Primary_Image_URL": "https://images.unsplash.com/photo-1473625247510-8ceb1760943f?w=1200&q=80",
+      "Booking_URL": "https://travelzada.com/packages/DEST_GOA_002",
+      "Price_Min_INR": 55000,
+      "Price_Max_INR": 70000,
+      "Duration_Nights": 5,
+      "Duration_Days": 6,
+      "SEO_Title": "Goa Family Beach Vacation | 5-Night Package with Water Park",
+      "SEO_Description": "Perfect family getaway to Goa with kid-friendly activities, water park, dolphin watching, and comfortable 4-star resort stay.",
+      "SEO_Keywords": "Goa family package, Goa with kids, family beach holiday Goa",
+      "Meta_Image_URL": "https://images.unsplash.com/photo-1473625247510-8ceb1760943f?w=1200&q=80",
+      "Guest_Reviews": [
+        {
+          "name": "Meera & Family",
+          "content": "Kids loved the water park and dolphin watching! The resort was perfect for families with great facilities.",
+          "date": "12 November 2025",
+          "rating": "5/5"
+        }
+      ],
+      "Booking_Policies": {
+        "booking": ["Instant confirmation", "Flexible dates", "24/7 support"],
+        "payment": ["Pay in instalments", "Zero cost EMI available", "Secure transactions"],
+        "cancellation": ["Free cancellation up to 7 days before travel", "Partial refund available"]
+      },
+      "FAQ_Items": [
+        {
+          "question": "Is this package suitable for children?",
+          "answer": "Yes, this package is specifically designed for families with kid-friendly activities, water park entry, and safe beach activities."
+        },
+        {
+          "question": "What water activities are included?",
+          "answer": "The package includes water park entry and dolphin watching cruise. Additional water sports can be arranged at extra cost."
+        }
+      ],
+      "Why_Book_With_Us": [
+        {
+          "label": "Family-Friendly",
+          "description": "Curated activities perfect for all ages"
+        },
+        {
+          "label": "Safe & Secure",
+          "description": "All activities are supervised and safe"
+        }
+      ]
+    },
+    {
+      "Destination_ID": "DEST_GOA_003",
+      "Destination_Name": "Goa, India",
+      "Overview": "A luxury beach escape with premium resorts, private beach access, and exclusive experiences.",
+      "Duration": "3 Nights / 4 Days",
+      "Mood": "Luxury",
+      "Occasion": "Anniversary / Honeymoon",
+      "Travel_Type": "Couple",
+      "Budget_Category": "Luxury",
+      "Price_Range_INR": "₹85,000 – ₹1,20,000 per couple",
+      "Theme": "Beach / Luxury / Romantic",
+      "Adventure_Level": "Light",
+      "Stay_Type": "Luxury Resort",
+      "Star_Category": "5-Star",
+      "Meal_Plan": "Breakfast & Dinner",
+      "Group_Size": "2 Adults",
+      "Child_Friendly": "No",
+      "Elderly_Friendly": "Yes",
+      "Language_Preference": "English, Hindi",
+      "Seasonality": "November to February",
+      "Hotel_Examples": "Taj Exotica Goa, The Leela Goa, W Goa",
+      "Inclusions": "5★ luxury beachfront resort stay with breakfast & dinner, private transfers, sunset cruise with dinner, spa session, private beach access",
+      "Exclusions": "Flights, lunches, personal expenses",
+      "Day_Wise_Itinerary": "Day 1: Arrive & resort relaxation | Day 2: Spa & private beach | Day 3: Sunset cruise with dinner | Day 4: Departure",
+      "Rating": "4.9/5",
+      "Location_Breakup": "3N South Goa",
+      "Airport_Code": "GOI",
+      "Transfer_Type": "Private",
+      "Currency": "INR",
+      "Climate_Type": "Tropical",
+      "Safety_Score": "9.5/10",
+      "Sustainability_Score": "8/10",
+      "Ideal_Traveler_Persona": "Couples seeking luxury and privacy",
+      "Created_By": "Travelzada",
+      "Last_Updated": "2025-11-22",
+      "Slug": "goa-luxury-beach-escape",
+      "Primary_Image_URL": "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1200&q=80",
+      "Booking_URL": "https://travelzada.com/packages/DEST_GOA_003",
+      "Price_Min_INR": 85000,
+      "Price_Max_INR": 120000,
+      "Duration_Nights": 3,
+      "Duration_Days": 4,
+      "SEO_Title": "Luxury Goa Beach Escape | 5-Star Resort Package for Couples",
+      "SEO_Description": "Indulge in luxury at a 5-star beachfront resort in Goa with private beach access, spa treatments, and romantic sunset cruises.",
+      "SEO_Keywords": "Luxury Goa package, 5-star Goa resort, romantic Goa holiday",
+      "Meta_Image_URL": "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=1200&q=80",
+      "Guest_Reviews": [
+        {
+          "name": "Anjali & Vikram",
+          "content": "Perfect anniversary celebration! The resort was absolutely stunning and the sunset cruise was magical.",
+          "date": "18 November 2025",
+          "rating": "5/5"
+        }
+      ],
+      "Booking_Policies": {
+        "booking": ["Instant confirmation", "Flexible dates", "24/7 concierge"],
+        "payment": ["Pay in instalments", "Zero cost EMI", "Secure transactions"],
+        "cancellation": ["Free cancellation up to 14 days", "Full refund available"]
+      },
+      "FAQ_Items": [
+        {
+          "question": "What makes this a luxury package?",
+          "answer": "This package includes 5-star beachfront resort, private beach access, spa treatments, and exclusive experiences like sunset dinner cruise."
+        }
+      ],
+      "Why_Book_With_Us": [
+        {
+          "label": "Luxury Guaranteed",
+          "description": "Only premium 5-star properties"
+        },
+        {
+          "label": "Exclusive Access",
+          "description": "Private beach and VIP experiences"
+        }
+      ]
+    },
+    {
+      "Destination_ID": "DEST_KERALA_001",
+      "Destination_Name": "Kerala, India",
+      "Overview": "Experience the backwaters, tea plantations, and Ayurveda in God's Own Country. A perfect blend of nature and wellness.",
+      "Duration": "6 Nights / 7 Days",
+      "Mood": "Relax",
+      "Occasion": "Wellness Retreat",
+      "Travel_Type": "Couple / Solo",
+      "Budget_Category": "Premium",
+      "Price_Range_INR": "₹65,000 – ₹85,000 per person",
+      "Theme": "Wellness / Nature / Culture",
+      "Adventure_Level": "Light",
+      "Stay_Type": "Houseboat / Resort",
+      "Star_Category": "4-Star",
+      "Meal_Plan": "Breakfast & Dinner",
+      "Group_Size": "2 Adults",
+      "Child_Friendly": "Yes",
+      "Elderly_Friendly": "Yes",
+      "Language_Preference": "English, Malayalam",
+      "Seasonality": "October to March",
+      "Hotel_Examples": "Kumarakom Lake Resort, Spice Route Cruises",
+      "Inclusions": "2N houseboat stay, 4N resort stay with breakfast & dinner, Alleppey backwater cruise, Munnar tea plantation tour, Ayurveda spa session, Kochi Fort visit",
+      "Exclusions": "Flights, lunches, personal expenses",
+      "Day_Wise_Itinerary": "Day 1: Arrive Kochi & city tour | Day 2: Transfer to Alleppey & houseboat | Day 3: Houseboat cruise | Day 4: Transfer to Munnar | Day 5: Tea plantation tour | Day 6: Ayurveda spa & leisure | Day 7: Departure",
+      "Rating": "4.8/5",
+      "Location_Breakup": "2N Alleppey (Houseboat) + 4N Munnar (Resort)",
+      "Airport_Code": "COK",
+      "Transfer_Type": "Private",
+      "Currency": "INR",
+      "Climate_Type": "Tropical",
+      "Safety_Score": "9/10",
+      "Sustainability_Score": "8.5/10",
+      "Ideal_Traveler_Persona": "Wellness seekers and nature lovers",
+      "Created_By": "Travelzada",
+      "Last_Updated": "2025-11-22",
+      "Slug": "kerala-backwaters-wellness",
+      "Primary_Image_URL": "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=1200&q=80",
+      "Booking_URL": "https://travelzada.com/packages/DEST_KERALA_001",
+      "Price_Min_INR": 65000,
+      "Price_Max_INR": 85000,
+      "Duration_Nights": 6,
+      "Duration_Days": 7,
+      "SEO_Title": "Kerala Backwaters & Wellness Package | 6-Night Houseboat & Resort Stay",
+      "SEO_Description": "Experience Kerala's famous backwaters on a houseboat, explore tea plantations in Munnar, and rejuvenate with Ayurveda spa treatments.",
+      "SEO_Keywords": "Kerala backwaters package, houseboat Kerala, Munnar tea gardens, Ayurveda Kerala",
+      "Meta_Image_URL": "https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=1200&q=80",
+      "Guest_Reviews": [
+        {
+          "name": "Sneha Patel",
+          "content": "The houseboat experience was incredible! Munnar's tea gardens were breathtaking. Highly recommend this package.",
+          "date": "20 November 2025",
+          "rating": "5/5"
+        }
+      ],
+      "Booking_Policies": {
+        "booking": ["Instant confirmation", "Flexible dates"],
+        "payment": ["Pay in instalments", "Zero cost EMI"],
+        "cancellation": ["Free cancellation up to 7 days"]
+      },
+      "FAQ_Items": [
+        {
+          "question": "What is included in the houseboat stay?",
+          "answer": "The houseboat includes comfortable accommodation, all meals, and a cruise through the backwaters with beautiful views of paddy fields and villages."
+        },
+        {
+          "question": "Is Ayurveda treatment included?",
+          "answer": "Yes, one Ayurveda spa session is included. Additional treatments can be booked at the resort."
+        }
+      ],
+      "Why_Book_With_Us": [
+        {
+          "label": "Authentic Experience",
+          "description": "Traditional houseboats and local experiences"
+        }
+      ]
+    },
+    {
+      "Destination_ID": "DEST_KERALA_002",
+      "Destination_Name": "Kerala, India",
+      "Overview": "A family-friendly Kerala tour covering beaches, backwaters, and wildlife. Perfect for families with kids.",
+      "Duration": "5 Nights / 6 Days",
+      "Mood": "Explore",
+      "Occasion": "Family Vacation",
+      "Travel_Type": "Family",
+      "Budget_Category": "Mid",
+      "Price_Range_INR": "₹75,000 – ₹95,000 per family of 3",
+      "Theme": "Beach / Backwaters / Wildlife",
+      "Adventure_Level": "Moderate",
+      "Stay_Type": "Resort",
+      "Star_Category": "4-Star",
+      "Meal_Plan": "Breakfast Only",
+      "Group_Size": "2 Adults + 1 Child",
+      "Child_Friendly": "Yes",
+      "Elderly_Friendly": "Yes",
+      "Language_Preference": "English, Malayalam",
+      "Seasonality": "October to March",
+      "Hotel_Examples": "Le Méridien Kochi, Marari Beach Resort",
+      "Inclusions": "5N resort stay with breakfast, airport transfers, Kovalam Beach visit, Alleppey backwater cruise, Periyar wildlife safari, Kochi Fort & Chinese fishing nets",
+      "Exclusions": "Flights, lunches, dinners, personal expenses",
+      "Day_Wise_Itinerary": "Day 1: Arrive Kochi & city tour | Day 2: Alleppey backwater cruise | Day 3: Transfer to Kovalam & beach | Day 4: Periyar wildlife safari | Day 5: Leisure & shopping | Day 6: Departure",
+      "Rating": "4.7/5",
+      "Location_Breakup": "2N Kochi + 1N Alleppey + 2N Kovalam",
+      "Airport_Code": "COK",
+      "Transfer_Type": "Private",
+      "Currency": "INR",
+      "Climate_Type": "Tropical",
+      "Safety_Score": "9/10",
+      "Sustainability_Score": "8/10",
+      "Ideal_Traveler_Persona": "Families seeking diverse experiences",
+      "Created_By": "Travelzada",
+      "Last_Updated": "2025-11-22",
+      "Slug": "kerala-family-tour",
+      "Primary_Image_URL": "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=1200&q=80",
+      "Booking_URL": "https://travelzada.com/packages/DEST_KERALA_002",
+      "Price_Min_INR": 75000,
+      "Price_Max_INR": 95000,
+      "Duration_Nights": 5,
+      "Duration_Days": 6,
+      "SEO_Title": "Kerala Family Tour Package | 5-Night Beach, Backwaters & Wildlife",
+      "SEO_Description": "Perfect family holiday covering Kerala's beaches, backwaters, and wildlife with comfortable resort stays and kid-friendly activities.",
+      "SEO_Keywords": "Kerala family package, Kovalam beach, Periyar safari, family trip Kerala",
+      "Meta_Image_URL": "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=1200q=80",
+      "Guest_Reviews": [
+        {
+          "name": "Rajesh & Family",
+          "content": "Kids loved the backwater cruise and wildlife safari! Great family-friendly package with good hotels.",
+          "date": "16 November 2025",
+          "rating": "4.5/5"
+        }
+      ],
+      "Booking_Policies": {
+        "booking": ["Instant confirmation", "Family-friendly"],
+        "payment": ["Pay in instalments"],
+        "cancellation": ["Free cancellation up to 7 days"]
+      },
+      "FAQ_Items": [
+        {
+          "question": "Is this package suitable for children?",
+          "answer": "Yes, all activities are family-friendly and suitable for children. The resorts have kid-friendly facilities."
+        }
+      ],
+      "Why_Book_With_Us": [
+        {
+          "label": "Family-Friendly",
+          "description": "All activities suitable for all ages"
+        }
+      ]
+    },
+    {
+      "Destination_ID": "DEST_RAJASTHAN_001",
+      "Destination_Name": "Rajasthan, India",
+      "Overview": "Royal Rajasthan - Explore the majestic forts and palaces of Jaipur, Udaipur, and Jodhpur. Experience the grandeur of royal India.",
+      "Duration": "7 Nights / 8 Days",
+      "Mood": "Explore",
+      "Occasion": "Cultural Tour",
+      "Travel_Type": "Couple / Family",
+      "Budget_Category": "Premium",
+      "Price_Range_INR": "₹1,20,000 – ₹1,60,000 per couple",
+      "Theme": "Culture / Heritage / Royal",
+      "Adventure_Level": "Light",
+      "Stay_Type": "Heritage Hotel",
+      "Star_Category": "5-Star",
+      "Meal_Plan": "Breakfast & Dinner",
+      "Group_Size": "2 Adults",
+      "Child_Friendly": "Yes",
+      "Elderly_Friendly": "Yes",
+      "Language_Preference": "English, Hindi",
+      "Seasonality": "October to March",
+      "Hotel_Examples": "Taj Lake Palace Udaipur, Rambagh Palace Jaipur, Umaid Bhawan Palace Jodhpur",
+      "Inclusions": "7N heritage palace hotel stay with breakfast & dinner, private transfers, guided tours of Jaipur City Palace & Hawa Mahal, Udaipur Lake Palace visit, Jodhpur Fort tour, camel safari in Jaisalmer, cultural show, shopping for handicrafts",
+      "Exclusions": "Flights, lunches, personal expenses",
+      "Day_Wise_Itinerary": "Day 1: Arrive Jaipur | Day 2: Jaipur city tour (City Palace, Hawa Mahal, Jantar Mantar) | Day 3: Transfer to Udaipur | Day 4: Udaipur city tour (Lake Palace, City Palace) | Day 5: Transfer to Jodhpur | Day 6: Jodhpur Fort & blue city | Day 7: Jaisalmer camel safari | Day 8: Departure",
+      "Rating": "4.9/5",
+      "Location_Breakup": "2N Jaipur + 2N Udaipur + 2N Jodhpur + 1N Jaisalmer",
+      "Airport_Code": "JAI",
+      "Transfer_Type": "Private",
+      "Currency": "INR",
+      "Climate_Type": "Desert",
+      "Safety_Score": "9/10",
+      "Sustainability_Score": "7.5/10",
+      "Ideal_Traveler_Persona": "Culture and heritage enthusiasts",
+      "Created_By": "Travelzada",
+      "Last_Updated": "2025-11-22",
+      "Slug": "rajasthan-royal-heritage-tour",
+      "Primary_Image_URL": "https://images.unsplash.com/photo-1539650116574-75c0c6d73a6e?w=1200&q=80",
+      "Booking_URL": "https://travelzada.com/packages/DEST_RAJASTHAN_001",
+      "Price_Min_INR": 120000,
+      "Price_Max_INR": 160000,
+      "Duration_Nights": 7,
+      "Duration_Days": 8,
+      "SEO_Title": "Royal Rajasthan Heritage Tour | 7-Night Palace Hotels & Forts",
+      "SEO_Description": "Experience the grandeur of royal Rajasthan with stays in heritage palaces, guided tours of forts, and cultural experiences across Jaipur, Udaipur, and Jodhpur.",
+      "SEO_Keywords": "Rajasthan tour package, Jaipur Udaipur Jodhpur, heritage palace hotels, royal Rajasthan",
+      "Meta_Image_URL": "https://images.unsplash.com/photo-1539650116574-75c0c6d73a6e?w=1200&q=80",
+      "Guest_Reviews": [
+        {
+          "name": "Arjun & Kavya",
+          "content": "Absolutely magical! Staying in heritage palaces was a dream come true. The guided tours were excellent.",
+          "date": "14 November 2025",
+          "rating": "5/5"
+        }
+      ],
+      "Booking_Policies": {
+        "booking": ["Instant confirmation", "Heritage experience"],
+        "payment": ["Pay in instalments"],
+        "cancellation": ["Free cancellation up to 14 days"]
+      },
+      "FAQ_Items": [
+        {
+          "question": "What makes these heritage hotels special?",
+          "answer": "These are former royal palaces converted into luxury hotels, offering authentic royal experiences with modern amenities."
+        },
+        {
+          "question": "Is the camel safari included?",
+          "answer": "Yes, a camel safari in Jaisalmer desert is included in the package."
+        }
+      ],
+      "Why_Book_With_Us": [
+        {
+          "label": "Royal Experience",
+          "description": "Stay in actual heritage palaces"
+        }
+      ]
+    },
+    {
+      "Destination_ID": "DEST_RAJASTHAN_002",
+      "Destination_Name": "Rajasthan, India",
+      "Overview": "A budget-friendly Rajasthan tour covering Jaipur, Pushkar, and Udaipur. Perfect for backpackers and budget travelers.",
+      "Duration": "5 Nights / 6 Days",
+      "Mood": "Explore",
+      "Occasion": "Budget Travel",
+      "Travel_Type": "Solo / Friends",
+      "Budget_Category": "Economy",
+      "Price_Range_INR": "₹35,000 – ₹50,000 per person",
+      "Theme": "Culture / Heritage / Budget",
+      "Adventure_Level": "Moderate",
+      "Stay_Type": "Hotel",
+      "Star_Category": "3-Star",
+      "Meal_Plan": "Breakfast Only",
+      "Group_Size": "1-2 Adults",
+      "Child_Friendly": "Yes",
+      "Elderly_Friendly": "Yes",
+      "Language_Preference": "English, Hindi",
+      "Seasonality": "October to March",
+      "Hotel_Examples": "Hotel Pearl Palace Jaipur, Hotel Lake Pichola Udaipur",
+      "Inclusions": "5N 3★ hotel stay with breakfast, shared transfers, Jaipur city tour, Pushkar visit, Udaipur city tour, camel ride in Pushkar",
+      "Exclusions": "Flights, lunches, dinners, personal expenses",
+      "Day_Wise_Itinerary": "Day 1: Arrive Jaipur | Day 2: Jaipur city tour | Day 3: Pushkar visit & camel ride | Day 4: Transfer to Udaipur | Day 5: Udaipur city tour | Day 6: Departure",
+      "Rating": "4.5/5",
+      "Location_Breakup": "2N Jaipur + 1N Pushkar + 2N Udaipur",
+      "Airport_Code": "JAI",
+      "Transfer_Type": "Shared",
+      "Currency": "INR",
+      "Climate_Type": "Desert",
+      "Safety_Score": "8.5/10",
+      "Sustainability_Score": "7/10",
+      "Ideal_Traveler_Persona": "Budget-conscious travelers seeking culture",
+      "Created_By": "Travelzada",
+      "Last_Updated": "2025-11-22",
+      "Slug": "rajasthan-budget-tour",
+      "Primary_Image_URL": "https://images.unsplash.com/photo-1539650116574-75c0c6d73a6e?w=1200&q=80",
+      "Booking_URL": "https://travelzada.com/packages/DEST_RAJASTHAN_002",
+      "Price_Min_INR": 35000,
+      "Price_Max_INR": 50000,
+      "Duration_Nights": 5,
+      "Duration_Days": 6,
+      "SEO_Title": "Budget Rajasthan Tour | 5-Night Jaipur Pushkar Udaipur Package",
+      "SEO_Description": "Explore Rajasthan on a budget with comfortable 3-star hotels, city tours of Jaipur and Udaipur, and a visit to Pushkar.",
+      "SEO_Keywords": "Budget Rajasthan tour, cheap Rajasthan package, Jaipur Udaipur budget",
+      "Meta_Image_URL": "https://images.unsplash.com/photo-1539650116574-75c0c6d73a6e?w=1200&q=80",
+      "Guest_Reviews": [
+        {
+          "name": "Rohit Kumar",
+          "content": "Great value for money! Covered all major attractions and the hotels were clean and comfortable.",
+          "date": "11 November 2025",
+          "rating": "4.5/5"
+        }
+      ],
+      "Booking_Policies": {
+        "booking": ["Instant confirmation"],
+        "payment": ["Pay in instalments"],
+        "cancellation": ["Free cancellation up to 7 days"]
+      },
+      "FAQ_Items": [
+        {
+          "question": "What is the difference between shared and private transfers?",
+          "answer": "Shared transfers mean you'll travel with other guests, while private transfers are exclusive to your group. Shared transfers are more economical."
+        }
+      ],
+      "Why_Book_With_Us": [
+        {
+          "label": "Budget-Friendly",
+          "description": "Best value for money packages"
+        }
+      ]
+    },
+    {
+      "Destination_ID": "DEST_MANALI_001",
+      "Destination_Name": "Manali, India",
+      "Overview": "An adventure-packed mountain holiday with skiing, paragliding, and stunning Himalayan views.",
+      "Duration": "4 Nights / 5 Days",
+      "Mood": "Adventure",
+      "Occasion": "Adventure Holiday",
+      "Travel_Type": "Friends / Solo",
+      "Budget_Category": "Mid",
+      "Price_Range_INR": "₹40,000 – ₹60,000 per person",
+      "Theme": "Adventure / Mountains / Nature",
+      "Adventure_Level": "High",
+      "Stay_Type": "Resort",
+      "Star_Category": "4-Star",
+      "Meal_Plan": "Breakfast Only",
+      "Group_Size": "1-2 Adults",
+      "Child_Friendly": "Yes",
+      "Elderly_Friendly": "No",
+      "Language_Preference": "English, Hindi",
+      "Seasonality": "March to June, October to December",
+      "Hotel_Examples": "The Himalayan Resort, Snow Valley Resorts",
+      "Inclusions": "4N mountain resort stay with breakfast, airport transfers, Rohtang Pass visit, Solang Valley activities (skiing/paragliding), Hadimba Temple visit, river rafting, Old Manali exploration",
+      "Exclusions": "Flights, lunches, dinners, adventure activity equipment rental",
+      "Day_Wise_Itinerary": "Day 1: Arrive Manali & check-in | Day 2: Rohtang Pass & Solang Valley | Day 3: Adventure activities (skiing/paragliding) | Day 4: River rafting & Old Manali | Day 5: Departure",
+      "Rating": "4.7/5",
+      "Location_Breakup": "4N Manali",
+      "Airport_Code": "KUU",
+      "Transfer_Type": "Private",
+      "Currency": "INR",
+      "Climate_Type": "Mountain",
+      "Safety_Score": "8.5/10",
+      "Sustainability_Score": "7.5/10",
+      "Ideal_Traveler_Persona": "Adventure enthusiasts and mountain lovers",
+      "Created_By": "Travelzada",
+      "Last_Updated": "2025-11-22",
+      "Slug": "manali-adventure-package",
+      "Primary_Image_URL": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80",
+      "Booking_URL": "https://travelzada.com/packages/DEST_MANALI_001",
+      "Price_Min_INR": 40000,
+      "Price_Max_INR": 60000,
+      "Duration_Nights": 4,
+      "Duration_Days": 5,
+      "SEO_Title": "Manali Adventure Package | 4-Night Skiing & Paragliding Holiday",
+      "SEO_Description": "Thrilling mountain adventure in Manali with skiing, paragliding, river rafting, and visits to Rohtang Pass and Solang Valley.",
+      "SEO_Keywords": "Manali adventure package, skiing Manali, paragliding Manali, Rohtang Pass",
+      "Meta_Image_URL": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80",
+      "Guest_Reviews": [
+        {
+          "name": "Aditya & Friends",
+          "content": "Amazing adventure trip! Paragliding was the highlight. The resort had great mountain views.",
+          "date": "13 November 2025",
+          "rating": "5/5"
+        }
+      ],
+      "Booking_Policies": {
+        "booking": ["Instant confirmation"],
+        "payment": ["Pay in instalments"],
+        "cancellation": ["Free cancellation up to 7 days"]
+      },
+      "FAQ_Items": [
+        {
+          "question": "What adventure activities are included?",
+          "answer": "The package includes skiing (in season), paragliding, and river rafting. Equipment rental may be extra."
+        },
+        {
+          "question": "Is Rohtang Pass always accessible?",
+          "answer": "Rohtang Pass is accessible from May to November. During winter, it may be closed due to snow. Alternative activities will be arranged."
+        }
+      ],
+      "Why_Book_With_Us": [
+        {
+          "label": "Adventure Experts",
+          "description": "Certified operators and safe activities"
+        }
+      ]
+    }
+  ]
+}
+
+
+
+
