@@ -57,6 +57,38 @@ export default function StepDmc1Destination({
   const availableNights: { nights: number; label: string }[] = data.availableNights || []
   const selectedNights: number = data.routeItems?.[0]?.nights || 0
 
+  // Derive ordered routes from hotels data (e.g. "Mount Abu → Udaipur")
+  const nightFilteredPkgs = selectedNights > 0
+    ? allPackages.filter((pkg: any) => Number(pkg.durationNights) === selectedNights)
+    : allPackages
+
+  const availableRoutes = (() => {
+    const seen = new Set<string>()
+    nightFilteredPkgs.forEach((pkg: any) => {
+      const hotels = Array.isArray(pkg.hotels) ? pkg.hotels : []
+      const route = hotels.map((h: any) => (h.destination || '').trim()).filter(Boolean).join(' → ')
+      if (route) seen.add(route)
+    })
+    return Array.from(seen).sort()
+  })()
+
+  const selectedRoute = availableRoutes.find(route => {
+    const routeCities = route.split(' → ').map((s: string) => s.trim())
+    return (
+      routeCities.length === selectedCities.length &&
+      routeCities.every((c: string) => selectedCities.includes(c))
+    )
+  }) ?? null
+
+  const selectRoute = (route: string) => {
+    if (selectedRoute === route) {
+      updateData({ includedCities: [] })
+    } else {
+      const cities = route.split(' → ').map((s: string) => s.trim())
+      updateData({ includedCities: cities })
+    }
+  }
+
   // Fetch all destinations for this agent on mount
   useEffect(() => {
     async function fetchDest() {
@@ -505,7 +537,7 @@ export default function StepDmc1Destination({
           </div>
         )}
 
-        {/* ── Section 3: City to Include ── */}
+        {/* ── Section 3: Route ── */}
         {isDestSelected && !isLoadingAnything && selectedNights > 0 && (
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-4 py-4">
@@ -515,67 +547,61 @@ export default function StepDmc1Destination({
                   <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0 shadow-sm shadow-primary/30">
                     <span className="text-[9px] font-black text-white">3</span>
                   </div>
-                  <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.15em]">City to Include</span>
+                  <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.15em]">Route</span>
                   <span className="text-[9px] text-gray-300 font-semibold">optional</span>
                 </div>
-                {availableCities.length > 0 && (
-                  <div className="flex items-center gap-1 bg-gray-50 rounded-xl px-2 py-1">
-                    <button
-                      onClick={() => updateData({ includedCities: [...availableCities] })}
-                      className="text-[10px] font-bold text-primary hover:text-primary/70 px-1.5 transition-colors"
-                    >
-                      All
-                    </button>
-                    <span className="text-gray-200 text-xs">|</span>
-                    <button
-                      onClick={() => updateData({ includedCities: [] })}
-                      className="text-[10px] font-bold text-gray-400 hover:text-gray-600 px-1.5 transition-colors"
-                    >
-                      Clear
-                    </button>
-                  </div>
+                {selectedRoute && (
+                  <button
+                    onClick={() => updateData({ includedCities: [] })}
+                    className="text-[10px] font-bold text-gray-400 hover:text-gray-600 px-2 py-1 bg-gray-50 rounded-xl transition-colors"
+                  >
+                    Clear
+                  </button>
                 )}
               </div>
 
-              {availableCities.length === 0 ? (
+              {availableRoutes.length === 0 ? (
                 <p className="text-xs text-gray-400 italic py-4 text-center bg-gray-50 rounded-2xl">
-                  No cities found in {selectedNights}-night itineraries.
+                  No routes found for {selectedNights}-night packages.
                 </p>
               ) : (
                 <>
                   <p className="text-xs text-gray-400 mb-3">
-                    {selectedCities.length === 0
-                      ? 'Select specific cities or leave empty to include all.'
-                      : (
-                        <span>
-                          <span className="font-bold text-primary">{selectedCities.length}</span>
-                          <span className="text-gray-400"> of {availableCities.length} cities selected</span>
-                        </span>
-                      )}
+                    {selectedRoute
+                      ? <span>Selected: <span className="font-bold text-primary">{selectedRoute}</span></span>
+                      : 'Select a route or leave empty to include all.'}
                   </p>
-                  <div className="flex flex-wrap gap-2">
-                    {availableCities.map(city => {
-                      const isSelected = selectedCities.includes(city)
+                  <div className="flex flex-col gap-2">
+                    {availableRoutes.map(route => {
+                      const isSelected = selectedRoute === route
+                      const cities = route.split(' → ')
                       return (
                         <button
-                          key={city}
-                          onClick={() => toggleCity(city)}
-                          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl border-2 text-sm font-semibold transition-all duration-200 select-none ${
+                          key={route}
+                          onClick={() => selectRoute(route)}
+                          className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all duration-200 select-none text-left ${
                             isSelected
-                              ? 'bg-primary border-transparent text-white shadow-md shadow-primary/20 scale-[1.03]'
+                              ? 'bg-primary border-transparent text-white shadow-md shadow-primary/20'
                               : 'bg-gray-50 border-gray-100 text-gray-600 hover:border-primary/20 hover:bg-primary/5 hover:text-primary'
                           }`}
                         >
-                          {isSelected ? (
-                            <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <span className="flex items-center gap-1.5 flex-wrap flex-1">
+                            {cities.map((city, idx) => (
+                              <span key={idx} className="flex items-center gap-1.5">
+                                {idx > 0 && (
+                                  <svg className={`w-3 h-3 flex-shrink-0 ${isSelected ? 'text-white/70' : 'text-primary/40'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                                  </svg>
+                                )}
+                                {city}
+                              </span>
+                            ))}
+                          </span>
+                          {isSelected && (
+                            <svg className="w-3.5 h-3.5 flex-shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                             </svg>
-                          ) : (
-                            <svg className="w-3 h-3 flex-shrink-0 opacity-30" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                            </svg>
                           )}
-                          {city}
                         </button>
                       )
                     })}
