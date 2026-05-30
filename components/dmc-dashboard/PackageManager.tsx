@@ -1262,7 +1262,9 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
       primaryImageUrl: form.primaryImageUrl,
       seasonalAvailability: form.seasonalAvailability,
       isActive: true,
-    } as AgentPackage
+      paymentPolicy: form.paymentPolicy,
+      cancellationPolicy: form.cancellationPolicy,
+    } as unknown as AgentPackage
   }
 
   // ── Open standalone print window for package brochure ───────────────────────
@@ -2771,7 +2773,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
       {/* ── Package Preview Modal ─────────────────────────────────────────── */}
       {previewPkg && (
         <div className="fixed inset-0 z-[60] flex items-start justify-center bg-black/50 overflow-y-auto py-8 px-4">
-          <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden">
+          <div className="relative w-full max-w-2xl bg-gray-50 rounded-3xl shadow-2xl overflow-hidden">
             {/* Header bar */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white sticky top-0 z-10">
               <div className="flex items-center gap-2">
@@ -2786,148 +2788,319 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
               </button>
             </div>
 
-            {/* Hero image */}
-            {previewPkg.primaryImageUrl ? (
-              <div className="relative h-56 w-full overflow-hidden">
-                <img src={previewPkg.primaryImageUrl} alt={previewPkg.title} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                <div className="absolute bottom-4 left-5 right-5">
-                  <h2 className="text-2xl font-bold text-white drop-shadow">{previewPkg.title}</h2>
-                  <p className="text-sm text-white/80 flex items-center gap-1 mt-1">
-                    <MapPin className="w-3.5 h-3.5" />{previewPkg.destination}{previewPkg.destinationCountry ? `, ${previewPkg.destinationCountry}` : ''}
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="h-40 bg-gradient-to-br from-purple-100 to-indigo-100 flex flex-col items-center justify-center">
-                <Package className="w-10 h-10 text-purple-300 mb-2" />
-                <h2 className="text-xl font-bold text-gray-800">{previewPkg.title}</h2>
-                <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                  <MapPin className="w-3.5 h-3.5" />{previewPkg.destination}
-                </p>
-              </div>
-            )}
+            <div className="p-5 space-y-4">
 
-            {/* Key stats row */}
-            <div className="grid grid-cols-4 divide-x divide-gray-100 border-b border-gray-100">
-              {[
-                { icon: <Clock className="w-4 h-4" />, label: 'Duration', value: previewPkg.durationNights ? `${previewPkg.durationNights}N / ${previewPkg.durationDays}D` : `${previewPkg.durationDays}D` },
-                { icon: <Star className="w-4 h-4" />, label: 'Category', value: previewPkg.starCategory },
-                { icon: <Users className="w-4 h-4" />, label: 'Group Size', value: `${previewPkg.minGroupSize || 1}–${previewPkg.maxGroupSize || 20}` },
-                { icon: <Calendar className="w-4 h-4" />, label: 'Season', value: previewPkg.seasonalAvailability || 'Year Round' },
-              ].map(({ icon, label, value }) => (
-                <div key={label} className="px-4 py-3 text-center">
-                  <div className="flex justify-center text-gray-400 mb-1">{icon}</div>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">{label}</p>
-                  <p className="text-xs font-semibold text-gray-800 mt-0.5">{value}</p>
+              {/* ── 1. Cover Image ── */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
+                  <span className="w-7 h-7 rounded-lg bg-green-50 flex items-center justify-center text-sm">🖼️</span>
+                  <p className="text-sm font-bold text-gray-800">Cover Image</p>
                 </div>
-              ))}
-            </div>
-
-            <div className="p-6 space-y-5">
-              {/* Tags */}
-              <div className="flex flex-wrap gap-2">
-                {previewPkg.travelType && <span className="bg-purple-100 text-purple-700 text-xs font-semibold px-3 py-1 rounded-full">{previewPkg.travelType}</span>}
-                {previewPkg.theme && <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full">{previewPkg.theme}</span>}
-                {previewPkg.mood && <span className="bg-pink-100 text-pink-700 text-xs font-semibold px-3 py-1 rounded-full">{previewPkg.mood}</span>}
+                {previewPkg.primaryImageUrl ? (
+                  <div className="h-52 w-full overflow-hidden">
+                    <img src={previewPkg.primaryImageUrl} alt={previewPkg.title} className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="h-32 bg-gradient-to-br from-purple-100 to-indigo-100 flex flex-col items-center justify-center gap-2">
+                    <Package className="w-8 h-8 text-purple-300" />
+                    <p className="text-sm text-gray-400">No cover image uploaded</p>
+                  </div>
+                )}
               </div>
 
-              {/* Price */}
-              <div className="bg-purple-50 border border-purple-200 rounded-2xl p-4 flex items-center justify-between">
-                <div>
-                  {previewPkg.totalPrice ? (
-                    <>
-                      <p className="text-xs text-purple-500 font-medium">Total Price</p>
-                      <p className="text-3xl font-bold text-purple-700">{getCurrencySymbol(previewPkg.currency)}{Number(previewPkg.totalPrice).toLocaleString()}</p>
-                      <p className="text-xs text-purple-500">full package{previewPkg.gst ? ` + ${previewPkg.gst}% GST` : ''}</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-xs text-purple-500 font-medium">Starting from</p>
-                      <p className="text-3xl font-bold text-purple-700">{getCurrencySymbol(previewPkg.currency)}{(previewPkg.pricePerPerson || 0).toLocaleString()}</p>
-                      <p className="text-xs text-purple-500">per person{previewPkg.gst ? ` + ${previewPkg.gst}% GST` : ''}</p>
-                    </>
-                  )}
+              {/* ── 2. Basic Info ── */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
+                  <span className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-sm">📍</span>
+                  <p className="text-sm font-bold text-gray-800">Basic Info</p>
                 </div>
-                <div className="bg-purple-600 text-white text-sm font-bold px-5 py-2.5 rounded-xl opacity-60 cursor-default">
-                  Request Quote
-                </div>
-              </div>
-
-              {/* Overview */}
-              {previewPkg.overview && (
-                <div>
-                  <h4 className="text-sm font-bold text-gray-900 mb-1.5">Overview</h4>
-                  <p className="text-sm text-gray-600 leading-relaxed">{previewPkg.overview}</p>
-                </div>
-              )}
-
-              {/* Highlights */}
-              {Array.isArray(previewPkg.highlights) && previewPkg.highlights.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-bold text-gray-900 mb-2">Highlights</h4>
-                  <ul className="space-y-1.5">
-                    {previewPkg.highlights.map((h: string, i: number) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                        <span className="text-purple-500 mt-0.5">✦</span>{h}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Inclusions / Exclusions */}
-              {(Array.isArray(previewPkg.inclusions) && previewPkg.inclusions.length > 0 ||
-                Array.isArray(previewPkg.exclusions) && previewPkg.exclusions.length > 0) && (
-                <div className="grid grid-cols-2 gap-4">
-                  {Array.isArray(previewPkg.inclusions) && previewPkg.inclusions.length > 0 && (
+                <div className="p-5 space-y-4">
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Package Title</p>
+                    <p className="text-base font-bold text-gray-900">{previewPkg.title || '—'}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <h4 className="text-sm font-bold text-green-700 mb-2">✓ Inclusions</h4>
-                      <ul className="space-y-1">
-                        {previewPkg.inclusions.map((inc: string, i: number) => (
-                          <li key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
-                            <span className="text-green-500 mt-0.5">•</span>{inc}
-                          </li>
-                        ))}
-                      </ul>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Destination</p>
+                      <p className="text-sm font-semibold text-gray-800 flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-gray-400" />{previewPkg.destination || '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Country</p>
+                      <p className="text-sm text-gray-700">{previewPkg.destinationCountry || '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Duration</p>
+                      <p className="text-sm font-semibold text-gray-800 flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-gray-400" />{previewPkg.durationNights ? `${previewPkg.durationNights}N / ${previewPkg.durationDays}D` : `${previewPkg.durationDays}D`}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Group Size</p>
+                      <p className="text-sm text-gray-700 flex items-center gap-1"><Users className="w-3.5 h-3.5 text-gray-400" />{previewPkg.minGroupSize || 1}–{previewPkg.maxGroupSize || 20} pax</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Season</p>
+                      <p className="text-sm text-gray-700 flex items-center gap-1"><Calendar className="w-3.5 h-3.5 text-gray-400" />{previewPkg.seasonalAvailability || 'Year Round'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Star Category</p>
+                      <p className="text-sm text-gray-700 flex items-center gap-1"><Star className="w-3.5 h-3.5 text-amber-400" />{previewPkg.starCategory || '—'}</p>
+                    </div>
+                  </div>
+                  {(previewPkg.travelType || previewPkg.theme || previewPkg.mood) && (
+                    <div className="flex flex-wrap gap-2">
+                      {previewPkg.travelType && <span className="bg-purple-100 text-purple-700 text-xs font-semibold px-3 py-1 rounded-full">{previewPkg.travelType}</span>}
+                      {previewPkg.theme && <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full">{previewPkg.theme}</span>}
+                      {previewPkg.mood && <span className="bg-pink-100 text-pink-700 text-xs font-semibold px-3 py-1 rounded-full">{previewPkg.mood}</span>}
                     </div>
                   )}
-                  {Array.isArray(previewPkg.exclusions) && previewPkg.exclusions.length > 0 && (
+                  {previewPkg.overview && (
                     <div>
-                      <h4 className="text-sm font-bold text-red-600 mb-2">✗ Exclusions</h4>
-                      <ul className="space-y-1">
-                        {previewPkg.exclusions.map((exc: string, i: number) => (
-                          <li key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
-                            <span className="text-red-400 mt-0.5">•</span>{exc}
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Overview</p>
+                      <p className="text-sm text-gray-600 leading-relaxed">{previewPkg.overview}</p>
+                    </div>
+                  )}
+                  {Array.isArray(previewPkg.highlights) && previewPkg.highlights.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Highlights</p>
+                      <ul className="space-y-1.5">
+                        {previewPkg.highlights.map((h: string, i: number) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                            <span className="text-purple-500 mt-0.5">✦</span>{h}
                           </li>
                         ))}
                       </ul>
                     </div>
                   )}
                 </div>
-              )}
+              </div>
 
-              {/* Day-wise itinerary */}
-              {previewPkg.dayWiseItinerary && (
-                <div>
-                  <h4 className="text-sm font-bold text-gray-900 mb-2">Day-Wise Itinerary</h4>
-                  <div className="space-y-2">
-                    {previewPkg.dayWiseItinerary.split('\n').filter(Boolean).map((line: string, i: number) => (
-                      <div key={i} className={`text-sm ${line.toLowerCase().startsWith('day') ? 'font-semibold text-gray-900 mt-3 first:mt-0' : 'text-gray-600 pl-4'}`}>
-                        {line}
-                      </div>
-                    ))}
+              {/* ── 3. Pricing Configuration ── */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
+                  <span className="w-7 h-7 rounded-lg bg-purple-50 flex items-center justify-center text-sm">💰</span>
+                  <p className="text-sm font-bold text-gray-800">Pricing Configuration</p>
+                </div>
+                <div className="p-5">
+                  <div className="bg-purple-50 border border-purple-200 rounded-2xl p-4 flex items-center justify-between">
+                    <div>
+                      {previewPkg.totalPrice ? (
+                        <>
+                          <p className="text-xs text-purple-500 font-medium">Total Package Price</p>
+                          <p className="text-3xl font-bold text-purple-700">{getCurrencySymbol(previewPkg.currency)}{Number(previewPkg.totalPrice).toLocaleString()}</p>
+                          <p className="text-xs text-purple-500 mt-0.5">full package{previewPkg.gst ? ` + ${previewPkg.gst}% GST` : ''}</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-xs text-purple-500 font-medium">Price Per Person</p>
+                          <p className="text-3xl font-bold text-purple-700">{getCurrencySymbol(previewPkg.currency)}{(previewPkg.pricePerPerson || 0).toLocaleString()}</p>
+                          <p className="text-xs text-purple-500 mt-0.5">per person{previewPkg.gst ? ` + ${previewPkg.gst}% GST` : ''}</p>
+                        </>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-1">Currency</p>
+                      <p className="text-sm font-bold text-gray-700">{previewPkg.currency || 'INR'}</p>
+                      {previewPkg.gst && (
+                        <>
+                          <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mt-2 mb-1">GST</p>
+                          <p className="text-sm font-bold text-gray-700">{previewPkg.gst}%</p>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
-              )}
+              </div>
+
+              {/* ── 4. Master Itinerary ── */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
+                  <span className="w-7 h-7 rounded-lg bg-purple-50 flex items-center justify-center">
+                    <Calendar className="w-4 h-4 text-purple-600" />
+                  </span>
+                  <p className="text-sm font-bold text-gray-800">Master Itinerary</p>
+                </div>
+                <div className="p-5">
+                  {(() => {
+                    const days = parseDayItems(previewPkg.dayWiseItinerary || '')
+                    if (days.length === 0) return (
+                      <div className="text-center py-6 border-2 border-dashed border-gray-100 rounded-xl">
+                        <p className="text-sm text-gray-400">No itinerary added</p>
+                      </div>
+                    )
+                    return (
+                      <div className="space-y-3">
+                        {days.map((day, idx) => (
+                          <div key={day.id} className="flex gap-3">
+                            <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                              <span className="w-7 h-7 rounded-full bg-purple-100 text-purple-700 text-xs font-bold flex items-center justify-center">{idx + 1}</span>
+                              {idx < days.length - 1 && <div className="w-0.5 flex-1 bg-purple-100 min-h-[16px]" />}
+                            </div>
+                            <div className="pb-3 flex-1">
+                              <p className="text-sm font-semibold text-gray-900">{day.title}</p>
+                              {day.description && <p className="text-xs text-gray-500 mt-1 leading-relaxed whitespace-pre-line">{day.description}</p>}
+                              {day.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-1.5">
+                                  {day.tags.map(tag => (
+                                    <span key={tag} className="text-[10px] bg-purple-50 text-purple-600 font-medium px-2 py-0.5 rounded-full">{tag}</span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })()}
+                </div>
+              </div>
+
+              {/* ── 5. Hotels & Accommodation ── */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
+                  <span className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-sm">🏨</span>
+                  <p className="text-sm font-bold text-gray-800">Hotels & Accommodation</p>
+                </div>
+                <div className="p-5">
+                  {Array.isArray(previewPkg.hotels) && previewPkg.hotels.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-gray-100">
+                            <th className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-2 pr-3">Destination</th>
+                            <th className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-2 pr-3 w-14">Nights</th>
+                            <th className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-2 pr-3">Hotel(s)</th>
+                            <th className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-2 pr-3">Meal Plan</th>
+                            <th className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-2">Room Type</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {previewPkg.hotels.map((h: HotelEntry, i: number) => (
+                            <tr key={i}>
+                              <td className="py-2.5 pr-3 text-sm font-semibold text-gray-800">{h.destination || '—'}</td>
+                              <td className="py-2.5 pr-3 text-sm text-gray-700 text-center">{h.nights}</td>
+                              <td className="py-2.5 pr-3 text-sm text-gray-700 whitespace-pre-line">{h.hotels || '—'}</td>
+                              <td className="py-2.5 pr-3 text-sm text-gray-700">{h.mealPlan || '—'}</td>
+                              <td className="py-2.5 text-sm text-gray-700 whitespace-pre-line">{h.roomType || '—'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 border-2 border-dashed border-gray-100 rounded-xl">
+                      <p className="text-sm text-gray-400">No hotels added</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* ── 6. Vehicles & Transfers ── */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
+                  <span className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-sm">🚗</span>
+                  <p className="text-sm font-bold text-gray-800">Vehicles & Transfers</p>
+                </div>
+                <div className="p-5">
+                  {Array.isArray(previewPkg.vehicles) && previewPkg.vehicles.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-gray-100">
+                            <th className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-2 pr-3">Vehicle Type</th>
+                            <th className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-2 w-14">Seats</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {previewPkg.vehicles.map((v: VehicleEntry, i: number) => (
+                            <tr key={i}>
+                              <td className="py-2.5 pr-3 text-sm font-semibold text-gray-800">{v.vehicleType || '—'}</td>
+                              <td className="py-2.5 text-sm text-gray-700 text-center">{v.seats}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 border-2 border-dashed border-gray-100 rounded-xl">
+                      <p className="text-sm text-gray-400">No vehicles added</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* ── 7. Inclusions & Exclusions ── */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
+                  <span className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-sm">📝</span>
+                  <p className="text-sm font-bold text-gray-800">Inclusions & Exclusions</p>
+                </div>
+                <div className="p-5">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[10px] font-bold text-green-700 uppercase tracking-wider mb-2">✓ Inclusions</p>
+                      {Array.isArray(previewPkg.inclusions) && previewPkg.inclusions.length > 0 ? (
+                        <ul className="space-y-1.5">
+                          {previewPkg.inclusions.map((inc: string, i: number) => (
+                            <li key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
+                              <span className="text-green-500 mt-0.5">•</span>{inc}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-xs text-gray-400 italic">None listed</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-red-600 uppercase tracking-wider mb-2">✗ Exclusions</p>
+                      {Array.isArray(previewPkg.exclusions) && previewPkg.exclusions.length > 0 ? (
+                        <ul className="space-y-1.5">
+                          {previewPkg.exclusions.map((exc: string, i: number) => (
+                            <li key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
+                              <span className="text-red-400 mt-0.5">•</span>{exc}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-xs text-gray-400 italic">None listed</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── 8. Payment & Cancellation Policy ── */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
+                  <span className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-sm">📋</span>
+                  <p className="text-sm font-bold text-gray-800">Payment & Cancellation Policy</p>
+                </div>
+                <div className="p-5 space-y-4">
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Payment Policy</p>
+                    {(previewPkg as any).paymentPolicy ? (
+                      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{(previewPkg as any).paymentPolicy}</p>
+                    ) : (
+                      <p className="text-xs text-gray-400 italic">No payment policy set</p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Cancellation Policy</p>
+                    {(previewPkg as any).cancellationPolicy ? (
+                      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{(previewPkg as any).cancellationPolicy}</p>
+                    ) : (
+                      <p className="text-xs text-gray-400 italic">No cancellation policy set</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
             </div>
 
             {/* Footer note */}
-            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 text-center">
+            <div className="px-6 py-4 border-t border-gray-100 bg-white text-center">
               <p className="text-xs text-gray-400">
                 {previewPkg.id === '__preview__'
                   ? 'This is a draft preview — changes are not saved yet.'
-                  : 'This is exactly how customers see this package on your planner page.'}
+                  : 'Preview of how this package is configured.'}
               </p>
             </div>
           </div>
