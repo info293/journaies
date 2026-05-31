@@ -8,9 +8,10 @@ import {
   Loader2, ArrowLeft, X, Send, User, Calendar,
   Users, Star, Clock, CheckCircle, MapPin, Package,
   FileText, ChevronDown, ChevronLeft, ChevronRight,
-  Hotel, Car, CreditCard, Ban,
+  Hotel, Car, CreditCard, Ban, Copy, Check, FileDown,
 } from 'lucide-react'
 import { openPackagePdfWindow } from '@/lib/generatePackagePdf'
+import { downloadPackageWord } from '@/lib/generatePackageWord'
 import { getCurrencySymbol } from '@/lib/utils/currency'
 
 
@@ -121,6 +122,8 @@ export default function AgentResultsPage() {
   const [noPackages, setNoPackages] = useState(false)
   const [loadingIdx, setLoadingIdx] = useState(0)
   const [nameCaptureAction, setNameCaptureAction] = useState<'pdf' | 'whatsapp' | null>(null)
+  const [copied, setCopied] = useState(false)
+  const [wordDownloading, setWordDownloading] = useState(false)
   const [agentInfo, setAgentInfo] = useState<AgentInfo | null>(null)
   const [subAgentId, setSubAgentId] = useState<string | undefined>(undefined)
   const [subAgentName, setSubAgentName] = useState<string | undefined>(undefined)
@@ -779,6 +782,58 @@ export default function AgentResultsPage() {
                 >
                   <Send className="w-3.5 h-3.5" /> Share on WhatsApp
                 </button>
+                <button
+                  onClick={() => {
+                    const msg = buildWhatsAppMsg(bestPkg, undefined, { adults: pdfAdults, kids: pdfKids, infants: pdfInfants })
+                    navigator.clipboard.writeText(msg).then(() => {
+                      setCopied(true)
+                      setTimeout(() => setCopied(false), 2000)
+                    })
+                  }}
+                  className="w-full flex items-center justify-center gap-2 border-2 border-gray-300 text-gray-700 py-3 rounded-lg font-semibold text-sm hover:bg-gray-50 transition"
+                >
+                  {copied ? <><Check className="w-3.5 h-3.5 text-green-500" /> Copied!</> : <><Copy className="w-3.5 h-3.5" /> Copy Text</>}
+                </button>
+                <button
+                  disabled={wordDownloading}
+                  onClick={async () => {
+                    setWordDownloading(true)
+                    try {
+                      await downloadPackageWord({
+                        title,
+                        destination: bestPkg.Destination_Name,
+                        destinationCountry: bestPkg.Destination_Country,
+                        durationDays: bestPkg.Duration_Days,
+                        durationNights: bestPkg.Duration_Nights,
+                        starCategory: bestPkg.Star_Category,
+                        currency: bestPkg.Currency,
+                        pricePerPerson: !bestPkg.totalPrice ? bestPkg.Price_Min_INR : null,
+                        totalPrice: bestPkg.totalPrice || null,
+                        gst: bestPkg.gst ?? null,
+                        adults: pdfAdults,
+                        kids: pdfKids || undefined,
+                        infants: pdfInfants || undefined,
+                        overview: bestPkg.Overview,
+                        inclusions,
+                        exclusions,
+                        dayWiseItinerary: bestPkg.Day_Wise_Itinerary ? String(bestPkg.Day_Wise_Itinerary) : undefined,
+                        hotels: Array.isArray(bestPkg.Hotels) && bestPkg.Hotels.length > 0 ? bestPkg.Hotels : undefined,
+                        vehicles: Array.isArray(bestPkg.Vehicles) && bestPkg.Vehicles.length > 0 ? bestPkg.Vehicles : undefined,
+                        paymentPolicy: bestPkg.PaymentPolicy || undefined,
+                        cancellationPolicy: bestPkg.CancellationPolicy || undefined,
+                        brandName: subAgentName || agentInfo?.companyName || 'Travel Agent',
+                        agentLogoUrl: subAgentLogoUrl || (subAgentName ? undefined : agentInfo?.logoUrl) || undefined,
+                      })
+                    } finally {
+                      setWordDownloading(false)
+                    }
+                  }}
+                  className="w-full flex items-center justify-center gap-2 border-2 border-blue-200 text-blue-700 py-3 rounded-lg font-semibold text-sm hover:bg-blue-50 transition disabled:opacity-60"
+                >
+                  {wordDownloading
+                    ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating…</>
+                    : <><FileDown className="w-3.5 h-3.5" /> Download as Word</>}
+                </button>
               </div>
             </div>
 
@@ -835,9 +890,9 @@ export default function AgentResultsPage() {
                       cancellationPolicy: bestPkg.CancellationPolicy || undefined,
                       preferredDates: pdfPreferredDates,
                       customerName: capturedName || undefined,
-                      brandName: agentInfo?.companyName || 'Travel Agent',
-                      agentContactName: agentInfo?.contactName || undefined,
-                      agentLogoUrl: subAgentLogoUrl || agentInfo?.logoUrl || undefined,
+                      brandName: subAgentName || agentInfo?.companyName || 'Travel Agent',
+                      agentContactName: subAgentName ? undefined : (agentInfo?.contactName || undefined),
+                      agentLogoUrl: subAgentLogoUrl || (subAgentName ? undefined : agentInfo?.logoUrl) || undefined,
                       termsVariant: 'brochure',
                     })
                   } else {
@@ -875,28 +930,30 @@ function buildWhatsAppMsg(
   const lines: string[] = []
 
   // ── Header ──────────────────────────────────────────
-  lines.push(`✈️ *${title}*`)
+  lines.push(`Dear Customer,`)
+  lines.push(``)
+  lines.push(`*${title}*`)
   lines.push(div)
 
   // ── 1. Basic Information ─────────────────────────────
   lines.push(``)
-  lines.push(`📋 *BASIC INFORMATION*`)
-  lines.push(`📍 *Destination:* ${pkg.Destination_Name}${pkg.Destination_Country ? ', ' + pkg.Destination_Country : ''}`)
-  lines.push(`🗓️ *Duration:* ${pkg.Duration_Days} Days / ${pkg.Duration_Nights} Nights`)
-  if (pkg.Star_Category) lines.push(`⭐ *Hotel Category:* ${pkg.Star_Category}`)
+  lines.push(`*BASIC INFORMATION*`)
+  lines.push(`*Destination:* ${pkg.Destination_Name}${pkg.Destination_Country ? ', ' + pkg.Destination_Country : ''}`)
+  lines.push(`*Duration:* ${pkg.Duration_Days} Days / ${pkg.Duration_Nights} Nights`)
+  if (pkg.Star_Category) lines.push(`*Hotel Category:* ${pkg.Star_Category}`)
   if (pax) {
     const totalPax = pax.adults + pax.kids + pax.infants
     const paxParts = [`${pax.adults} Adult${pax.adults !== 1 ? 's' : ''}`]
     if (pax.kids > 0) paxParts.push(`${pax.kids} Child${pax.kids !== 1 ? 'ren' : ''}`)
     if (pax.infants > 0) paxParts.push(`${pax.infants} Infant${pax.infants !== 1 ? 's' : ''}`)
-    lines.push(`👥 *Passengers:* ${totalPax} Pax (${paxParts.join(', ')})`)
+    lines.push(`*Passengers:* ${totalPax} Pax (${paxParts.join(', ')})`)
   }
   if (!priceOpts || priceOpts.showPrice) {
     const sym = getCurrencySymbol((pkg as any).Currency)
     const displayPrice = priceOpts ? priceOpts.finalPricePerPerson : (pkg.totalPrice || pkg.Price_Min_INR)
-    const priceLabel = pkg.totalPrice ? 'Full Package' : 'Per Person'
+    const priceLabel = pkg.totalPrice ? 'Total Price' : 'Price Per Person'
     const gstNote = pkg.gst ? ` + ${pkg.gst}% GST` : ''
-    lines.push(`💰 *Price:* ${sym}${displayPrice.toLocaleString()} (${priceLabel})${gstNote}`)
+    lines.push(`*Price:* ${sym}${displayPrice.toLocaleString()} (${priceLabel})${gstNote}`)
   }
 
   // ── 2. Overview ──────────────────────────────────────
@@ -904,7 +961,7 @@ function buildWhatsAppMsg(
     lines.push(``)
     lines.push(thin)
     lines.push(``)
-    lines.push(`📝 *OVERVIEW*`)
+    lines.push(`*OVERVIEW*`)
     lines.push(pkg.Overview)
   }
 
@@ -913,7 +970,7 @@ function buildWhatsAppMsg(
     lines.push(``)
     lines.push(thin)
     lines.push(``)
-    lines.push(`🗺️ *DAY-WISE ITINERARY*`)
+    lines.push(`*DAY-WISE ITINERARY*`)
     String(pkg.Day_Wise_Itinerary).split('\n').filter(Boolean).forEach(line => {
       if (/^day\s*\d+/i.test(line)) {
         lines.push(``)
@@ -929,13 +986,13 @@ function buildWhatsAppMsg(
     lines.push(``)
     lines.push(thin)
     lines.push(``)
-    lines.push(`🏨 *HOTEL INFORMATION*`)
+    lines.push(`*HOTEL INFORMATION*`)
     pkg.Hotels.forEach((h: any) => {
       lines.push(``)
-      lines.push(`📌 *${h.destination || 'Hotel'}*${h.nights ? ` — ${h.nights} Night${h.nights > 1 ? 's' : ''}` : ''}`)
-      if (h.hotels) lines.push(`   🏩 ${h.hotels}`)
-      if (h.mealPlan) lines.push(`   🍽️ Meal Plan: ${h.mealPlan}`)
-      if (h.roomType) lines.push(`   🛏️ Room: ${h.roomType}`)
+      lines.push(`*${h.destination || 'Hotel'}*${h.nights ? ` — ${h.nights} Night${h.nights > 1 ? 's' : ''}` : ''}`)
+      if (h.hotels) lines.push(`   ${h.hotels}`)
+      if (h.mealPlan) lines.push(`   Meal Plan: ${h.mealPlan}`)
+      if (h.roomType) lines.push(`   Room: ${h.roomType}`)
     })
   }
 
@@ -944,11 +1001,9 @@ function buildWhatsAppMsg(
     lines.push(``)
     lines.push(thin)
     lines.push(``)
-    lines.push(`🚗 *TRANSPORT & TRANSFERS*`)
+    lines.push(`*TRANSPORT & TRANSFERS*`)
     pkg.Vehicles.forEach((v: any) => {
-      const parts = [v.vehicleType, v.seats ? `${v.seats} Seats` : null, v.route, v.days ? `${v.days} Day(s)` : null].filter(Boolean)
-      lines.push(`  🚌 ${parts.join('  |  ')}`)
-      if (v.notes) lines.push(`     _${v.notes}_`)
+      if (v.vehicleType) lines.push(`  ${v.vehicleType}`)
     })
   }
 
@@ -957,7 +1012,7 @@ function buildWhatsAppMsg(
     lines.push(``)
     lines.push(thin)
     lines.push(``)
-    lines.push(`✅ *INCLUSIONS*`)
+    lines.push(`*INCLUSIONS*`)
     inclusions.forEach((inc: string) => lines.push(`  ✓ ${inc}`))
   }
 
@@ -966,7 +1021,7 @@ function buildWhatsAppMsg(
     lines.push(``)
     lines.push(thin)
     lines.push(``)
-    lines.push(`❌ *EXCLUSIONS*`)
+    lines.push(`*EXCLUSIONS*`)
     exclusions.forEach((exc: string) => lines.push(`  ✗ ${exc}`))
   }
 
@@ -975,7 +1030,7 @@ function buildWhatsAppMsg(
     lines.push(``)
     lines.push(thin)
     lines.push(``)
-    lines.push(`💳 *PAYMENT POLICY*`)
+    lines.push(`*PAYMENT POLICY*`)
     pkg.PaymentPolicy.split('\n').filter(Boolean).forEach(line => lines.push(`  ${line.trim()}`))
   }
 
@@ -984,7 +1039,7 @@ function buildWhatsAppMsg(
     lines.push(``)
     lines.push(thin)
     lines.push(``)
-    lines.push(`🚫 *CANCELLATION POLICY*`)
+    lines.push(`*CANCELLATION POLICY*`)
     pkg.CancellationPolicy.split('\n').filter(Boolean).forEach(line => lines.push(`  ${line.trim()}`))
   }
 

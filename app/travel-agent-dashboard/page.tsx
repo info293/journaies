@@ -1108,7 +1108,7 @@ export default function SubAgentDashboardPage() {
             <p className="text-xs text-gray-400">Travel Agent Dashboard</p>
           </div>
           <div className="flex items-center gap-3">
-            {currentUser && parentAgentId && parentAgentSlug && (
+            {/* {currentUser && parentAgentId && parentAgentSlug && (
               <SubAgentDemoLoader
                 subAgentId={currentUser.uid}
                 subAgentName={subAgentName || 'Travel Agent'}
@@ -1116,7 +1116,7 @@ export default function SubAgentDashboardPage() {
                 parentAgentSlug={parentAgentSlug}
                 onDone={fetchAll}
               />
-            )}
+            )} */}
             <a href={plannerUrl} target="_blank"
               className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-primary bg-primary/5 px-3 py-1.5 rounded-lg hover:bg-primary/10">
               <ExternalLink className="w-3.5 h-3.5" />My Planner

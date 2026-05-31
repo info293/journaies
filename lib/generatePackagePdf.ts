@@ -402,7 +402,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,san
       <thead>
         <tr>
           <th>Vehicle</th>
-          <th>Seats</th>
         </tr>
       </thead>
       <tbody>
@@ -411,7 +410,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,san
           <td>
             <div class="vtype">${esc(v.vehicleType || '—')}</div>
           </td>
-          <td>${v.seats ? v.seats : '—'}</td>
         </tr>`).join('')}
       </tbody>
     </table>
