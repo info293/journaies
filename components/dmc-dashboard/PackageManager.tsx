@@ -235,6 +235,7 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
   const [csvUploading, setCsvUploading] = useState(false)
   const [csvResult, setCsvResult] = useState<CsvResult | null>(null)
   const [showCsvGuide, setShowCsvGuide] = useState(false)
+  const [showCsvFormatTips, setShowCsvFormatTips] = useState(false)
 
   // CSV state — hotel/vehicle in-form imports
   const hotelCsvInputRef = useRef<HTMLInputElement>(null)
@@ -1497,9 +1498,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
         </div>
       </div>
 
-      {/* CSV Guide & Upload */}
+      {/* CSV Guide & Upload — modal overlay */}
       {showCsvGuide && (
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-5 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => { setShowCsvGuide(false); setShowCsvFormatTips(false) }}>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div
+            className="relative bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-5 space-y-4 w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
           <div className="flex items-start justify-between gap-4">
             <div>
               <h3 className="font-bold text-blue-900 text-sm">📦 Bulk Upload via CSV</h3>
@@ -1509,11 +1515,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                 <span className="text-blue-500 font-semibold">Download the sample CSV below to get started instantly.</span>
               </p>
             </div>
-            <button onClick={() => setShowCsvGuide(false)} className="text-blue-400 hover:text-blue-700 flex-shrink-0">
+            <button onClick={() => { setShowCsvGuide(false); setShowCsvFormatTips(false) }} className="text-blue-400 hover:text-blue-700 flex-shrink-0">
               <X className="w-4 h-4" />
             </button>
           </div>
 
+          {/* Formatting tips toggle */}
+          <button
+            onClick={() => setShowCsvFormatTips(v => !v)}
+            className="flex items-center gap-2 w-full border border-blue-200 bg-white hover:bg-blue-50 text-blue-700 font-semibold px-3.5 py-2 rounded-lg text-xs transition-colors"
+          >
+            <span className="flex items-center justify-center w-5 h-5 bg-blue-100 rounded-full flex-shrink-0">
+              {showCsvFormatTips ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </span>
+            {showCsvFormatTips ? 'Hide' : 'Show'} CSV formatting guide
+            <span className="text-blue-400 font-normal ml-0.5">(itinerary, hotels &amp; vehicles)</span>
+            <span className="ml-auto text-[10px] font-normal text-blue-400">{showCsvFormatTips ? 'collapse' : 'expand'}</span>
+          </button>
+
+          {showCsvFormatTips && (<>
           {/* Day-wise itinerary callout */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5">
             <p className="text-xs font-bold text-amber-800 mb-2">📅 How to format Day-Wise Itinerary in CSV</p>
@@ -1586,6 +1606,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
               <span className="bg-emerald-100 border border-emerald-200 rounded-full px-2.5 py-0.5">✓ Use <code className="font-bold">||</code> between multiple entries</span>
             </div>
           </div>
+          </>)}
 
           <div className="bg-white border border-blue-200 rounded-xl p-3 overflow-x-auto">
             <p className="text-[11px] font-bold text-gray-500 mb-1.5">📋 All Supported Columns</p>
@@ -1648,6 +1669,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
               {csvUploading ? <><Loader2 className="w-4 h-4 animate-spin" />Uploading…</> : <><Upload className="w-4 h-4" />Choose CSV File</>}
             </button>
             <p className="text-xs text-gray-400">Supported: .csv, UTF-8 encoded</p>
+          </div>
           </div>
         </div>
       )}

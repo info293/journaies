@@ -894,7 +894,7 @@ export default function AgentResultsPage() {
                       agentContactName: subAgentName ? undefined : (agentInfo?.contactName || undefined),
                       agentLogoUrl: subAgentLogoUrl || (subAgentName ? undefined : agentInfo?.logoUrl) || undefined,
                       termsVariant: 'brochure',
-                    })
+                    }, 'download')
                   } else {
                     const msg = buildWhatsAppMsg(bestPkg, priceOpts, { adults: pdfAdults, kids: pdfKids, infants: pdfInfants })
                     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank')

@@ -71,7 +71,7 @@ async function urlToBase64(url: string, label = 'image'): Promise<string> {
   }
 }
 
-export async function openPackagePdfWindow(opts: PackagePdfOptions): Promise<void> {
+export async function openPackagePdfWindow(opts: PackagePdfOptions, mode: 'print' | 'download' = 'print'): Promise<void> {
   const {
     title, destination, destinationCountry, heroImage = '',
     badgeText, refId,
@@ -500,10 +500,52 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,san
 </div>
 </body></html>`
 
-  const win = window.open('', '_blank', 'width=900,height=1200')
-  if (!win) { alert('Please allow pop-ups to generate the PDF.'); return }
-  win.document.write(html)
-  win.document.close()
-  win.focus()
-  setTimeout(() => win.print(), 400)
+  if (mode === 'download') {
+    const iframe = document.createElement('iframe')
+    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:794px;height:1122px;border:none;visibility:hidden'
+    document.body.appendChild(iframe)
+    const iDoc = iframe.contentDocument || iframe.contentWindow?.document
+    if (!iDoc) { document.body.removeChild(iframe); return }
+    iDoc.open(); iDoc.write(html); iDoc.close()
+
+    await new Promise(r => setTimeout(r, 800))
+
+    const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+      import('html2canvas'),
+      import('jspdf'),
+    ])
+
+    const canvas = await html2canvas(iDoc.body, {
+      scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff',
+      width: 794, windowWidth: 794,
+    })
+
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' })
+    const pageW = pdf.internal.pageSize.getWidth()
+    const pageH = pdf.internal.pageSize.getHeight()
+    const imgH = (canvas.height * pageW) / canvas.width
+    const imgData = canvas.toDataURL('image/jpeg', 0.92)
+
+    let y = 0
+    let remaining = imgH
+    while (remaining > 0) {
+      pdf.addImage(imgData, 'JPEG', 0, -y, pageW, imgH)
+      remaining -= pageH
+      y += pageH
+      if (remaining > 0) pdf.addPage()
+    }
+
+    const safeName = opts.customerName
+      ? `${opts.customerName} - ${title}`.replace(/[^a-z0-9 \-_]/gi, '_').slice(0, 80)
+      : title.replace(/[^a-z0-9 \-_]/gi, '_').slice(0, 80)
+    pdf.save(`${safeName}.pdf`)
+    document.body.removeChild(iframe)
+  } else {
+    const win = window.open('', '_blank', 'width=900,height=1200')
+    if (!win) { alert('Please allow pop-ups to generate the PDF.'); return }
+    win.document.write(html)
+    win.document.close()
+    win.focus()
+    setTimeout(() => win.print(), 400)
+  }
 }
