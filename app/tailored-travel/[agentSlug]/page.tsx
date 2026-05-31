@@ -1,7 +1,9 @@
+export const dynamic = 'force-dynamic'
+
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { db } from '@/lib/firebase'
-import { collection, query, where, getDocs } from 'firebase/firestore'
+import { collection, query, where, getDocsFromServer } from 'firebase/firestore'
 import AgentBrandedWizard from '@/components/tailored-travel/AgentBrandedWizard'
 
 interface Props {
@@ -12,7 +14,7 @@ async function getAgentData(agentSlug: string) {
   try {
     const agentsRef = collection(db, 'agents')
     const q = query(agentsRef, where('agentSlug', '==', agentSlug), where('status', '==', 'active'))
-    const snap = await getDocs(q)
+    const snap = await getDocsFromServer(q)
 
     if (snap.empty) return null
 

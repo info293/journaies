@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { db } from '@/lib/firebase'
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import {
@@ -43,6 +44,7 @@ const AGENCY_TYPE_LABELS: Record<string, string> = {
 }
 
 export default function AgentSettings({ agentId, agentSlug, onSaved, onLogout }: Props) {
+  const router = useRouter()
   const [profile, setProfile] = useState<AgentProfile | null>(null)
   const [form, setForm] = useState<Partial<AgentProfile>>({})
   const [loading, setLoading] = useState(true)
@@ -96,6 +98,7 @@ export default function AgentSettings({ agentId, agentSlug, onSaved, onLogout }:
       })
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
+      router.refresh()
       onSaved?.()
     } catch (err: any) {
       setError(err.message || 'Failed to save changes.')

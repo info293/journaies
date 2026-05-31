@@ -102,6 +102,7 @@ interface Quotation {
   quotedPrice?: number | null
   agentNotes?: string
   customPackageData?: PackageData | null
+  agentOwned?: boolean
   messages: Message[]
   createdAt?: { seconds: number }
   updatedAt?: { seconds: number }
@@ -230,6 +231,8 @@ export default function QuotationsManager({ agentId, agentSlug, agentName, curre
   const [customDayItems, setCustomDayItems] = useState<DayItem[]>([])
   const [savingCustom, setSavingCustom] = useState(false)
   const [creatingPkg, setCreatingPkg] = useState(false)
+  const [showSaveAsModal, setShowSaveAsModal] = useState(false)
+  const [saveAsNameInput, setSaveAsNameInput] = useState('')
   const [chatPanelOpen, setChatPanelOpen] = useState(false)
   const [detailPanelOpen, setDetailPanelOpen] = useState(false)
   const originalCustomFormRef = useRef<Partial<PackageData>>({})
@@ -358,24 +361,26 @@ export default function QuotationsManager({ agentId, agentSlug, agentName, curre
         customPackageData: merged as PackageData,
         ...(newQuotedPrice ? { quotedPrice: newQuotedPrice, status: q.status === 'pending' ? 'quoted' : q.status } : {}),
       } : q))
-      router.push('/dmc-dashboard/quotations')
+      router.push(subAgentId ? '/travel-agent-dashboard/quotations' : '/dmc-dashboard/quotations')
     } catch { }
     finally { setSavingCustom(false) }
   }
 
-  // â”€â”€ Create a real package in Package Manager from the custom form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  async function createNewPackage() {
-    if (!customForm.title || !customForm.destination) {
+  // ── Create a real package in Package Manager from the custom form ─────────────
+  async function createNewPackage(overrideTitle?: string) {
+    const effectiveTitle = overrideTitle || customForm.title
+    if (!effectiveTitle || !customForm.destination) {
       alert('Package title and destination are required.')
       return
     }
     if (!activeId || !active) return
     setCreatingPkg(true)
+    setShowSaveAsModal(false)
     try {
       const dayWise = customDayItems.length > 0 ? serializeDayItems(customDayItems) : customForm.dayWiseItinerary || ''
-      const merged = { ...customForm, dayWiseItinerary: dayWise, hotels: customHotelEntries, vehicles: customVehicleEntries, perks: customPerks }
+      const merged = { ...customForm, title: effectiveTitle, dayWiseItinerary: dayWise, hotels: customHotelEntries, vehicles: customVehicleEntries, perks: customPerks }
 
-      // 1. Create the package in Package Manager
+      // Create the package in Package Manager
       const pkgRes = await fetch('/api/agent/packages', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -412,29 +417,91 @@ export default function QuotationsManager({ agentId, agentSlug, agentName, curre
       const pkgData = await pkgRes.json()
       if (!pkgRes.ok) throw new Error(pkgData.error || 'Failed to create package')
 
-      // 2. Also save the same data to the quotation so travel agent sees the update
-      const groupSize = active.groupSize || active.adults || 1
-      const newQuotedPrice = merged.pricePerPerson
-        ? Number(merged.pricePerPerson) * groupSize
-        : undefined
-      const patchBody: Record<string, any> = { customPackageData: merged }
-      if (newQuotedPrice) patchBody.quotedPrice = newQuotedPrice
-
-      await fetch(`/api/agent/quotations/${activeId}`, {
-        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(patchBody),
-      })
-      setQuotations(prev => prev.map(q => q.id === activeId ? {
-        ...q,
-        customPackageData: merged as PackageData,
-        ...(newQuotedPrice ? { quotedPrice: newQuotedPrice, status: q.status === 'pending' ? 'quoted' : q.status } : {}),
-      } : q))
+      if (subAgentId) {
+        // Agent mode: create a BRAND NEW quotation owned by the travel agent.
+        // The original quotation is left completely untouched.
+        const groupSize = active.groupSize || active.adults || 1
+        const newQuotedPrice = merged.pricePerPerson
+          ? Number(merged.pricePerPerson) * groupSize
+          : (active.quotedPrice ?? null)
+        const newQuotRes = await fetch('/api/agent/quotations', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            agentId,
+            agentSlug,
+            subAgentId,
+            subAgentName: agentName,
+            packageId: active.packageId || '',
+            packageTitle: effectiveTitle,
+            destination: merged.destination || active.destination,
+            customerName: active.customerName,
+            customerEmail: active.customerEmail,
+            customerPhone: active.customerPhone || '',
+            preferredDates: active.preferredDates || '',
+            groupSize: active.groupSize || 1,
+            adults: active.adults || 1,
+            kids: active.kids || 0,
+            infants: active.infants || 0,
+            rooms: active.rooms || 1,
+            specialRequests: active.specialRequests || '',
+            customPackageData: merged,
+            quotedPrice: newQuotedPrice,
+            agentOwned: true,
+          }),
+        })
+        const newQuotData = await newQuotRes.json()
+        if (!newQuotRes.ok) throw new Error(newQuotData.error || 'Failed to create quotation')
+        // Prepend new quotation to local state so it immediately appears at top of list
+        const newQuot: Quotation = {
+          id: newQuotData.quotationId,
+          publicId: newQuotData.publicId || '',
+          subAgentId,
+          subAgentName: agentName,
+          agentOwned: true,
+          packageId: active.packageId || '',
+          packageTitle: effectiveTitle,
+          destination: (merged.destination || active.destination) as string,
+          customerName: active.customerName,
+          customerEmail: active.customerEmail,
+          customerPhone: active.customerPhone,
+          preferredDates: active.preferredDates,
+          groupSize: active.groupSize || 1,
+          adults: active.adults || 1,
+          kids: active.kids || 0,
+          infants: active.infants,
+          rooms: active.rooms,
+          specialRequests: active.specialRequests,
+          status: 'pending',
+          quotedPrice: newQuotedPrice,
+          customPackageData: merged as PackageData,
+          messages: [],
+        }
+        setQuotations(prev => [newQuot, ...prev])
+      } else {
+        // DMC mode: also save customized package data back to the quotation
+        const groupSize = active.groupSize || active.adults || 1
+        const newQuotedPrice = merged.pricePerPerson
+          ? Number(merged.pricePerPerson) * groupSize
+          : undefined
+        const patchBody: Record<string, any> = { customPackageData: merged }
+        if (newQuotedPrice) patchBody.quotedPrice = newQuotedPrice
+        await fetch(`/api/agent/quotations/${activeId}`, {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(patchBody),
+        })
+        setQuotations(prev => prev.map(q => q.id === activeId ? {
+          ...q,
+          customPackageData: merged as PackageData,
+          ...(newQuotedPrice ? { quotedPrice: newQuotedPrice, status: q.status === 'pending' ? 'quoted' : q.status } : {}),
+        } : q))
+      }
 
       // Update the original snapshot so the dirty flag resets
       originalCustomFormRef.current = { ...merged }
       originalCustomDayItemsRef.current = customDayItems.map(i => ({ ...i }))
 
-      router.push('/dmc-dashboard/quotations')
+      const redirectPath = subAgentId ? '/travel-agent-dashboard/quotations' : '/dmc-dashboard/quotations'
+      router.push(redirectPath)
     } catch (err: any) {
       alert('Failed to create package: ' + err.message)
     } finally {
@@ -995,7 +1062,14 @@ export default function QuotationsManager({ agentId, agentSlug, agentName, curre
                   <th className="px-4 py-3 text-left whitespace-nowrap">Customer</th>
                   <th className="px-4 py-3 text-left whitespace-nowrap">Created At</th>
                   <th className="px-4 py-3 text-left whitespace-nowrap">Proposal Name</th>
-                  <th className="px-4 py-3 text-left whitespace-nowrap">{subAgentId ? 'To' : 'From'}</th>
+                  {subAgentId ? (
+                    <>
+                      <th className="px-4 py-3 text-left whitespace-nowrap">Owner</th>
+                      <th className="px-4 py-3 text-left whitespace-nowrap">DMC</th>
+                    </>
+                  ) : (
+                    <th className="px-4 py-3 text-left whitespace-nowrap">From</th>
+                  )}
                   <th className="px-4 py-3 text-left whitespace-nowrap">Travel Date</th>
                   <th className="px-4 py-3 text-left whitespace-nowrap">Pax</th>
                   {false && <th className="px-4 py-3 text-right whitespace-nowrap">Price Quoted</th>}
@@ -1029,24 +1103,40 @@ export default function QuotationsManager({ agentId, agentSlug, agentName, curre
                         <p className="font-medium text-gray-800 leading-snug">{q.packageTitle}</p>
                         <p className="text-xs text-gray-400">{q.destination}</p>
                       </td>
-                      <td className="px-4 py-3.5">
-                        {subAgentId
-                          ? (toName
+                      {subAgentId ? (
+                        <>
+                          <td className="px-4 py-3.5">
+                            {(() => {
+                              const ownerName = q.agentOwned ? q.subAgentName : (toName || q.subAgentName)
+                              return ownerName
+                                ? <span className="inline-flex items-center gap-1.5 bg-purple-50 text-purple-700 border border-purple-100 text-xs font-semibold px-2.5 py-1 rounded-full">
+                                    <User className="w-3 h-3" />
+                                    {ownerName}
+                                  </span>
+                                : <span className="text-gray-300 text-xs">—</span>
+                            })()}
+                          </td>
+                          <td className="px-4 py-3.5">
+                            {toName
                               ? <span className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-100 text-xs font-semibold px-2.5 py-1 rounded-full">
                                   <User className="w-3 h-3" />
                                   {toName}
                                 </span>
                               : <span className="text-gray-300 text-xs">—</span>
-                            )
-                          : (q.subAgentName
-                              ? <span className="inline-flex items-center gap-1.5 bg-purple-50 text-purple-700 border border-purple-100 text-xs font-semibold px-2.5 py-1 rounded-full">
-                                  <User className="w-3 h-3" />
-                                  {q.subAgentName}
-                                </span>
-                              : <span className="text-gray-300 text-xs">—</span>
-                            )
-                        }
-                      </td>
+                            }
+                          </td>
+                        </>
+                      ) : (
+                        <td className="px-4 py-3.5">
+                          {q.subAgentName
+                            ? <span className="inline-flex items-center gap-1.5 bg-purple-50 text-purple-700 border border-purple-100 text-xs font-semibold px-2.5 py-1 rounded-full">
+                                <User className="w-3 h-3" />
+                                {q.subAgentName}
+                              </span>
+                            : <span className="text-gray-300 text-xs">—</span>
+                          }
+                        </td>
+                      )}
                       <td className="px-4 py-3.5 whitespace-nowrap">
                         <p className="text-xs text-gray-700">{formatTravelDate(q.preferredDates) || <span className="text-gray-300">—</span>}</p>
                       </td>
@@ -1822,15 +1912,19 @@ export default function QuotationsManager({ agentId, agentSlug, agentName, curre
       const customCurrency = (customForm as any).currency || 'INR'
       const currencyMeta = CURRENCIES.find(c => c.code === customCurrency) || CURRENCIES[0]
       const basePrice = Number(customForm.pricePerPerson) || 0
-      const baseINR = basePrice * customExchangeRate
-      const totalINR = baseINR * groupSize
+      const baseTotalPrice = Number((customForm as any).totalPrice) || 0
+      const isTotalPriceMode = basePrice === 0 && baseTotalPrice > 0
+      const baseINR = isTotalPriceMode
+        ? baseTotalPrice * customExchangeRate
+        : basePrice * customExchangeRate * groupSize
+      const totalINR = baseINR
       return (
         <div className="fixed left-0 md:left-72 right-0 top-0 bottom-0 z-[60] flex flex-col bg-[#f4f5f9]">
 
           {/* Top bar — matches PackageManager style */}
           <div className="flex items-center gap-4 bg-white border-b border-gray-100 px-5 py-0 flex-shrink-0 h-14">
             <button
-              onClick={() => { setShowCustomize(false); if (openCustomizeId) router.push('/dmc-dashboard/quotations') }}
+              onClick={() => { setShowCustomize(false); if (openCustomizeId) router.push(subAgentId ? '/travel-agent-dashboard/quotations' : '/dmc-dashboard/quotations') }}
               className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors flex-shrink-0"
             >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
@@ -2066,14 +2160,23 @@ export default function QuotationsManager({ agentId, agentSlug, agentName, curre
                     </div>
                   </div>
                   <div className="bg-amber-600 text-white rounded-2xl p-4 min-w-[160px] flex-shrink-0 text-center shadow-lg shadow-amber-100">
-                    <p className="text-[9px] font-bold uppercase tracking-widest opacity-70 mb-1">Total Quoted Price</p>
+                    <p className="text-[9px] font-bold uppercase tracking-widest opacity-70 mb-1">
+                      {isTotalPriceMode ? 'Total Package Price' : 'Total Quoted Price'}
+                    </p>
                     <p className="text-[9px] opacity-50 mb-2">(in INR)</p>
                     <p className="text-2xl font-bold leading-tight">
                       ₹{totalINR > 0 ? totalINR.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '—'}
                     </p>
-                    <p className="text-[10px] opacity-60 mt-1.5">for {groupSize} pax</p>
-                    {customCurrency !== 'INR' && basePrice > 0 && !customRateLoading && (
-                      <p className="text-[9px] opacity-50 mt-1">{currencyMeta.symbol}{basePrice.toLocaleString()} × {customExchangeRate.toFixed(2)}</p>
+                    <p className="text-[10px] opacity-60 mt-1.5">
+                      {isTotalPriceMode ? 'total package' : `for ${groupSize} pax`}
+                    </p>
+                    {customCurrency !== 'INR' && !customRateLoading && (basePrice > 0 || baseTotalPrice > 0) && (
+                      <p className="text-[9px] opacity-50 mt-1">
+                        {isTotalPriceMode
+                          ? `${currencyMeta.symbol}${baseTotalPrice.toLocaleString()} × ${customExchangeRate.toFixed(2)}`
+                          : `${currencyMeta.symbol}${basePrice.toLocaleString()} × ${customExchangeRate.toFixed(2)}`
+                        }
+                      </p>
                     )}
                   </div>
                 </div>
@@ -2351,17 +2454,22 @@ export default function QuotationsManager({ agentId, agentSlug, agentName, curre
 
           {/* Bottom action bar */}
           <div className="flex items-center justify-end px-5 py-3 bg-white border-t border-gray-100 shadow-[0_-2px_12px_rgba(0,0,0,0.07)] flex-shrink-0 gap-2">
-            <button
-              onClick={saveCustomPackage}
-              disabled={savingCustom || creatingPkg}
-              className="flex items-center gap-1.5 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 disabled:opacity-50 text-gray-700 text-xs font-bold px-4 py-2 rounded-xl transition-colors"
-            >
-              {savingCustom ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-              {savingCustom ? 'Saving…' : 'Save'}
-            </button>
+            {!subAgentId && (
+              <button
+                onClick={saveCustomPackage}
+                disabled={savingCustom || creatingPkg}
+                className="flex items-center gap-1.5 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 disabled:opacity-50 text-gray-700 text-xs font-bold px-4 py-2 rounded-xl transition-colors"
+              >
+                {savingCustom ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                {savingCustom ? 'Saving…' : 'Save'}
+              </button>
+            )}
 
             <button
-              onClick={createNewPackage}
+              onClick={() => {
+                setSaveAsNameInput(customForm.title || active?.packageTitle || '')
+                setShowSaveAsModal(true)
+              }}
               disabled={savingCustom || creatingPkg}
               className="flex items-center gap-1.5 border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50 disabled:opacity-50 text-gray-700 hover:text-indigo-700 text-xs font-bold px-4 py-2 rounded-xl transition-colors"
             >
@@ -2376,6 +2484,41 @@ export default function QuotationsManager({ agentId, agentSlug, agentName, curre
               <Download className="w-3.5 h-3.5" /> Download
             </button>
           </div>
+
+          {/* Save As name modal */}
+          {showSaveAsModal && (
+            <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+              <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-sm mx-4 p-6">
+                <h3 className="text-base font-bold text-gray-900 mb-1">Save Package As</h3>
+                <p className="text-xs text-gray-400 mb-4">Enter a name for this package. It will be saved to your Package Manager.</p>
+                <input
+                  autoFocus
+                  type="text"
+                  value={saveAsNameInput}
+                  onChange={e => setSaveAsNameInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter' && saveAsNameInput.trim()) createNewPackage(saveAsNameInput.trim()) }}
+                  placeholder="Package name…"
+                  className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-4"
+                />
+                <div className="flex gap-2 justify-end">
+                  <button
+                    onClick={() => setShowSaveAsModal(false)}
+                    className="text-xs font-semibold px-4 py-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => { if (saveAsNameInput.trim()) createNewPackage(saveAsNameInput.trim()) }}
+                    disabled={!saveAsNameInput.trim() || creatingPkg}
+                    className="flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition-colors disabled:opacity-50"
+                  >
+                    {creatingPkg ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                    {creatingPkg ? 'Saving…' : 'Save'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )
     })()}

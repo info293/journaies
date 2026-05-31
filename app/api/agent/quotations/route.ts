@@ -70,6 +70,7 @@ export async function POST(request: Request) {
       customerName, customerEmail, customerPhone,
       preferredDates, groupSize, adults, kids, infants, rooms,
       specialRequests, wizardData, selectedPackage,
+      customPackageData, quotedPrice, agentOwned,
     } = body
 
     if (!agentId || !subAgentId || !customerName) {
@@ -120,11 +121,13 @@ export async function POST(request: Request) {
       specialRequests: specialRequests || '',
       wizardData: wizardData || null,
       selectedPackage: selectedPackage || null,
-      status: 'pending',       // pending | in_discussion | quoted | accepted | rejected | converted
-      quotedPrice: null,
+      customPackageData: customPackageData || null,
+      agentOwned: agentOwned || false,
+      status: 'pending',
+      quotedPrice: quotedPrice ?? null,
       agentNotes: '',
       subAgentNotes: '',
-      messages: [],             // {senderId, senderRole, senderName, text, timestamp}
+      messages: [],
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     }
@@ -164,7 +167,7 @@ export async function POST(request: Request) {
       sendMail(mail).catch(() => {})
     }).catch(() => {})
 
-    return NextResponse.json({ success: true, quotationId: ref.id })
+    return NextResponse.json({ success: true, quotationId: ref.id, publicId: quotation.publicId })
   } catch (error: any) {
     console.error('[Quotations POST]', error)
     return NextResponse.json({ error: error.message }, { status: 500 })

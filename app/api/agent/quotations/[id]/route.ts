@@ -141,7 +141,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
     // Generic field update (status, quotedPrice, agentNotes, subAgentNotes, etc.)
     const updates: Record<string, any> = { updatedAt: serverTimestamp() }
-    const allowed = ['status', 'quotedPrice', 'agentNotes', 'subAgentNotes', 'customPackageData']
+    const allowed = ['status', 'quotedPrice', 'agentNotes', 'subAgentNotes', 'customPackageData', 'subAgentName']
     allowed.forEach(f => { if (rest[f] !== undefined) updates[f] = rest[f] })
 
     // Notify DMC when a travel agent changes status or price
