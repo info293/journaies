@@ -61,7 +61,6 @@ export default function AgentLoginGate({
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-gray-900">{agentName}</h2>
-          <p className="text-gray-500 mt-1 text-sm">Powered by Travelzada AI Planner</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">

@@ -351,7 +351,6 @@ export default function AgentResultsPage() {
                 ? <img src={agentInfo.logoUrl} alt="" className="w-6 h-6 rounded-full object-cover" />
                 : <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-xs">{agentInfo.companyName.charAt(0)}</div>}
               <span className="text-sm font-semibold text-gray-700">{agentInfo.companyName}</span>
-              <span className="text-xs text-gray-400">· Powered by Travelzada AI</span>
             </div>
           )}
           <div className="relative flex items-center justify-center">
@@ -376,7 +375,6 @@ export default function AgentResultsPage() {
             : <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-sm">{agentInfo.companyName.charAt(0)}</div>}
           <div>
             <p className="text-sm font-bold text-gray-900 leading-tight">{agentInfo.companyName}</p>
-            <p className="text-[10px] text-gray-400 font-medium">Powered by Travelzada AI</p>
           </div>
         </div>
         <Link href={`/tailored-travel/${agentSlug}`}
