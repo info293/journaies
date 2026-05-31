@@ -138,6 +138,11 @@ interface AgentPackage {
   mood?: string
   paymentPolicy?: string
   cancellationPolicy?: string
+  hotels?: Array<{ destination: string; nights: number; hotels: string; mealPlan: string; roomType?: string }>
+  vehicles?: Array<{ vehicleType: string; seats?: number }>
+  minGroupSize?: number
+  maxGroupSize?: number
+  seasonalAvailability?: string
 }
 
 type Tab = 'planner' | 'home' | 'bookings' | 'packages' | 'quotations' | 'quote_history' | 'customers' | 'stats' | 'activity' | 'ai' | 'profile'
@@ -192,45 +197,105 @@ function buildPackageWhatsAppMessage(pkg: AgentPackage, finalPrice?: number): st
   const currSym = getCurrencySymbol(pkg.currency)
   const isTotalPkg = Boolean(pkg.totalPrice)
   const displayPrice = finalPrice ?? (pkg.totalPrice || pkg.pricePerPerson)
-  const priceLabel = isTotalPkg ? 'total package' : 'per person'
+  const priceLabel = isTotalPkg ? 'Total Price' : 'Price Per Person'
+  const div = '━━━━━━━━━━━━━━━━━━━━━━'
+  const thin = '──────────────────────'
 
-  lines.push(`✈️ *${pkg.title}*`)
-  lines.push(`📍 ${pkg.destination}${pkg.destinationCountry ? ', ' + pkg.destinationCountry : ''}`)
-  lines.push(`🗓️ ${pkg.durationDays} Days / ${pkg.durationNights} Nights`)
-  lines.push(`⭐ ${pkg.starCategory}  |  🎒 ${pkg.travelType}${pkg.theme ? '  |  🎨 ' + pkg.theme : ''}${pkg.mood ? '  |  💫 ' + pkg.mood : ''}`)
-  lines.push(`💰 *${currSym}${displayPrice.toLocaleString('en-IN')} ${priceLabel}*${pkg.gst ? ` + ${pkg.gst}% GST` : ''}`)
+  lines.push(`Dear Customer,`)
+  lines.push(``)
+  lines.push(`*${pkg.title}*`)
+  lines.push(div)
+
+  lines.push(``)
+  lines.push(`*BASIC INFORMATION*`)
+  lines.push(`*Destination:* ${pkg.destination}${pkg.destinationCountry ? ', ' + pkg.destinationCountry : ''}`)
+  lines.push(`*Duration:* ${pkg.durationDays} Days / ${pkg.durationNights} Nights`)
+  if (pkg.starCategory) lines.push(`*Hotel Category:* ${pkg.starCategory}`)
+  lines.push(`*${priceLabel}:* ${currSym}${displayPrice.toLocaleString('en-IN')}${pkg.gst ? ` + ${pkg.gst}% GST` : ''}`)
 
   if (pkg.overview) {
-    lines.push('')
-    lines.push(`📝 *Overview*`)
+    lines.push(``)
+    lines.push(thin)
+    lines.push(``)
+    lines.push(`*OVERVIEW*`)
     lines.push(pkg.overview)
   }
 
   if (pkg.highlights && pkg.highlights.length > 0) {
-    lines.push('')
-    lines.push(`✨ *Highlights*`)
+    lines.push(``)
+    lines.push(thin)
+    lines.push(``)
+    lines.push(`*HIGHLIGHTS*`)
     pkg.highlights.forEach(h => lines.push(`  • ${h}`))
   }
 
+  if (pkg.dayWiseItinerary) {
+    lines.push(``)
+    lines.push(thin)
+    lines.push(``)
+    lines.push(`*DAY-WISE ITINERARY*`)
+    pkg.dayWiseItinerary.split('\n').filter(Boolean).forEach(line => {
+      if (/^day\s*\d+/i.test(line)) {
+        lines.push(``)
+        lines.push(`*${line.trim()}*`)
+      } else {
+        lines.push(`  • ${line.trim()}`)
+      }
+    })
+  }
+
+  if (Array.isArray(pkg.hotels) && pkg.hotels.length > 0) {
+    lines.push(``)
+    lines.push(thin)
+    lines.push(``)
+    lines.push(`*HOTEL INFORMATION*`)
+    pkg.hotels.forEach((h: any) => {
+      lines.push(``)
+      lines.push(`*${h.destination || 'Hotel'}*${h.nights ? ` — ${h.nights} Night${h.nights > 1 ? 's' : ''}` : ''}`)
+      if (h.hotels) lines.push(`   ${h.hotels}`)
+      if (h.mealPlan) lines.push(`   Meal Plan: ${h.mealPlan}`)
+      if (h.roomType) lines.push(`   Room: ${h.roomType}`)
+    })
+  }
+
+  if (Array.isArray(pkg.vehicles) && pkg.vehicles.length > 0) {
+    lines.push(``)
+    lines.push(thin)
+    lines.push(``)
+    lines.push(`*TRANSPORT & TRANSFERS*`)
+    pkg.vehicles.forEach((v: any) => { if (v.vehicleType) lines.push(`  ${v.vehicleType}`) })
+  }
+
   if (pkg.inclusions && pkg.inclusions.length > 0) {
-    lines.push('')
-    lines.push(`✅ *Inclusions*`)
+    lines.push(``)
+    lines.push(thin)
+    lines.push(``)
+    lines.push(`*INCLUSIONS*`)
     pkg.inclusions.forEach(inc => lines.push(`  ✓ ${inc}`))
   }
 
   if (pkg.exclusions && pkg.exclusions.length > 0) {
-    lines.push('')
-    lines.push(`❌ *Exclusions*`)
+    lines.push(``)
+    lines.push(thin)
+    lines.push(``)
+    lines.push(`*EXCLUSIONS*`)
     pkg.exclusions.forEach(exc => lines.push(`  ✗ ${exc}`))
   }
 
-  if (pkg.dayWiseItinerary) {
-    lines.push('')
-    lines.push(`🗺️ *Day-wise Itinerary*`)
-    pkg.dayWiseItinerary.split('\n').filter(Boolean).forEach(line => {
-      const isDay = /^day\s*\d+/i.test(line)
-      lines.push(isDay ? `*${line}*` : `  ${line}`)
-    })
+  if (pkg.paymentPolicy) {
+    lines.push(``)
+    lines.push(thin)
+    lines.push(``)
+    lines.push(`*PAYMENT POLICY*`)
+    pkg.paymentPolicy.split('\n').filter(Boolean).forEach(line => lines.push(`  ${line.trim()}`))
+  }
+
+  if (pkg.cancellationPolicy) {
+    lines.push(``)
+    lines.push(thin)
+    lines.push(``)
+    lines.push(`*CANCELLATION POLICY*`)
+    pkg.cancellationPolicy.split('\n').filter(Boolean).forEach(line => lines.push(`  ${line.trim()}`))
   }
 
   return lines.join('\n')
@@ -553,11 +618,16 @@ export default function SubAgentDashboardPage() {
       inclusions: Array.isArray(pkg.inclusions) ? pkg.inclusions.filter(Boolean) : [],
       exclusions: Array.isArray(pkg.exclusions) ? pkg.exclusions.filter(Boolean) : [],
       dayWiseItinerary: pkg.dayWiseItinerary,
+      hotels: Array.isArray(pkg.hotels) && pkg.hotels.length > 0 ? pkg.hotels : undefined,
+      vehicles: Array.isArray(pkg.vehicles) && pkg.vehicles.length > 0
+        ? pkg.vehicles.map(v => ({ ...v, route: '' }))
+        : undefined,
       paymentPolicy: pkg.paymentPolicy || undefined,
       cancellationPolicy: pkg.cancellationPolicy || undefined,
       brandName: subAgentName || 'Travel Agent',
+      agentLogoUrl: profileLogoUrl || undefined,
       termsVariant: 'brochure',
-    })
+    }, 'download')
   }
 
   function shareQuotationWhatsApp(q: Quotation) {
@@ -2158,134 +2228,309 @@ export default function SubAgentDashboardPage() {
       </div>
 
       {/* ── Package Detail View Modal ─────────────────────────────────────────── */}
-      {viewPkgDetail && (
-        <div className="fixed inset-0 z-[70] bg-black/60 flex items-start justify-center overflow-y-auto py-6 px-4" onClick={() => setViewPkgDetail(null)}>
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
-            {/* Cover image */}
-            {viewPkgDetail.primaryImageUrl ? (
-              <div className="relative h-52">
-                <img src={viewPkgDetail.primaryImageUrl} alt={viewPkgDetail.title} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                <button onClick={() => setViewPkgDetail(null)} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 flex items-center justify-center text-white transition-colors">
-                  <X className="w-4 h-4" />
-                </button>
-                <div className="absolute bottom-4 left-5 right-5">
-                  <h2 className="font-bold text-white text-xl leading-tight">{viewPkgDetail.title}</h2>
-                  <p className="text-white/80 text-sm mt-1 flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{viewPkgDetail.destination}{viewPkgDetail.destinationCountry ? `, ${viewPkgDetail.destinationCountry}` : ''}</p>
+      {viewPkgDetail && (() => {
+        const pkg = viewPkgDetail
+        const sym = getCurrencySymbol(pkg.currency)
+        const days: { title: string; desc: string }[] = []
+        if (pkg.dayWiseItinerary) {
+          let cur: { title: string; desc: string } | null = null
+          for (const line of pkg.dayWiseItinerary.split('\n').filter(Boolean)) {
+            if (/^day\s*\d+/i.test(line)) {
+              if (cur) days.push(cur)
+              cur = { title: line.trim(), desc: '' }
+            } else if (cur) {
+              cur.desc += (cur.desc ? '\n' : '') + line.trim()
+            }
+          }
+          if (cur) days.push(cur)
+        }
+        return (
+          <div className="fixed inset-0 z-[70] bg-black/60 flex items-start justify-center overflow-y-auto py-6 px-4" onClick={() => setViewPkgDetail(null)}>
+            <div className="relative w-full max-w-2xl bg-gray-50 rounded-3xl shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white sticky top-0 z-10">
+                <div className="flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-indigo-500" />
+                  <span className="font-bold text-gray-900 text-sm">Package Preview</span>
                 </div>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-                <div>
-                  <h2 className="font-bold text-gray-900 text-lg">{viewPkgDetail.title}</h2>
-                  <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5"><MapPin className="w-3.5 h-3.5" />{viewPkgDetail.destination}</p>
-                </div>
-                <button onClick={() => setViewPkgDetail(null)} className="p-2 text-gray-400 hover:text-gray-700 rounded-xl hover:bg-gray-100">
+                <button onClick={() => setViewPkgDetail(null)} className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
                   <X className="w-5 h-5" />
                 </button>
               </div>
-            )}
 
-            <div className="p-6 space-y-6 overflow-y-auto max-h-[60vh]">
-              {/* Key stats */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  { label: 'Duration', value: `${viewPkgDetail.durationDays}D / ${viewPkgDetail.durationNights}N` },
-                  { label: 'Star Category', value: viewPkgDetail.starCategory },
-                  { label: 'Travel Type', value: viewPkgDetail.travelType },
-                  { label: viewPkgDetail.totalPrice ? 'Total Price' : 'Price / Person', value: `${getCurrencySymbol(viewPkgDetail.currency)}${(viewPkgDetail.totalPrice || viewPkgDetail.pricePerPerson).toLocaleString('en-IN')}${viewPkgDetail.gst ? ` + ${viewPkgDetail.gst}% GST` : ''}` },
-                ].map(s => (
-                  <div key={s.label} className="bg-gray-50 rounded-xl p-3 text-center">
-                    <p className="text-xs text-gray-400 mb-0.5">{s.label}</p>
-                    <p className="font-bold text-gray-900 text-sm">{s.value}</p>
+              <div className="p-5 space-y-4">
+
+                {/* ── Cover Image ── */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
+                    <span className="w-7 h-7 rounded-lg bg-green-50 flex items-center justify-center text-sm">🖼️</span>
+                    <p className="text-sm font-bold text-gray-800">Cover Image</p>
                   </div>
-                ))}
+                  {pkg.primaryImageUrl ? (
+                    <div className="h-52 w-full overflow-hidden">
+                      <img src={pkg.primaryImageUrl} alt={pkg.title} className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className="h-32 bg-gradient-to-br from-purple-100 to-indigo-100 flex flex-col items-center justify-center gap-2">
+                      <Package className="w-8 h-8 text-purple-300" />
+                      <p className="text-sm text-gray-400">No cover image uploaded</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* ── Basic Info ── */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
+                    <span className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-sm">📍</span>
+                    <p className="text-sm font-bold text-gray-800">Basic Info</p>
+                  </div>
+                  <div className="p-5 space-y-4">
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Package Title</p>
+                      <p className="text-base font-bold text-gray-900">{pkg.title || '—'}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Destination</p>
+                        <p className="text-sm text-gray-700">{pkg.destination || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Country</p>
+                        <p className="text-sm text-gray-700">{pkg.destinationCountry || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Duration</p>
+                        <p className="text-sm text-gray-700">{pkg.durationNights ? `${pkg.durationNights}N / ${pkg.durationDays}D` : `${pkg.durationDays}D`}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Group Size</p>
+                        <p className="text-sm text-gray-700">{pkg.minGroupSize || 1}–{pkg.maxGroupSize || 20} pax</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Season</p>
+                        <p className="text-sm text-gray-700">{pkg.seasonalAvailability || 'Year Round'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Star Category</p>
+                        <p className="text-sm text-gray-700">{pkg.starCategory || '—'}</p>
+                      </div>
+                    </div>
+                    {(pkg.travelType || pkg.theme || pkg.mood) && (
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {pkg.travelType && <span className="bg-purple-100 text-purple-700 text-xs font-semibold px-3 py-1 rounded-full">{pkg.travelType}</span>}
+                        {pkg.theme && <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full">{pkg.theme}</span>}
+                        {pkg.mood && <span className="bg-pink-100 text-pink-700 text-xs font-semibold px-3 py-1 rounded-full">{pkg.mood}</span>}
+                      </div>
+                    )}
+                    {pkg.overview && (
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Overview</p>
+                        <p className="text-sm text-gray-600 leading-relaxed">{pkg.overview}</p>
+                      </div>
+                    )}
+                    {Array.isArray(pkg.highlights) && pkg.highlights.length > 0 && (
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Highlights</p>
+                        <ul className="space-y-1">
+                          {pkg.highlights.map((h, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
+                              <span className="text-primary mt-0.5 flex-shrink-0 font-bold">✦</span>{h}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* ── Pricing ── */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
+                    <span className="w-7 h-7 rounded-lg bg-yellow-50 flex items-center justify-center text-sm">💰</span>
+                    <p className="text-sm font-bold text-gray-800">Pricing Configuration</p>
+                  </div>
+                  <div className="p-5 flex flex-wrap gap-6 items-start">
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">{pkg.totalPrice ? 'Total Price' : 'Price Per Person'}</p>
+                      <p className="text-2xl font-bold text-purple-700">{sym}{(pkg.totalPrice || pkg.pricePerPerson || 0).toLocaleString('en-IN')}</p>
+                      <p className="text-xs text-purple-500 mt-0.5">{pkg.gst ? `+ ${pkg.gst}% GST` : ''}</p>
+                    </div>
+                    <div className="flex gap-6">
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Currency</p>
+                        <p className="text-sm font-bold text-gray-700">{pkg.currency || 'INR'}</p>
+                      </div>
+                      {pkg.gst ? (
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">GST</p>
+                          <p className="text-sm font-bold text-gray-700">{pkg.gst}%</p>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── Master Itinerary ── */}
+                {days.length > 0 && (
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+                    <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
+                      <span className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center text-sm">🗺️</span>
+                      <p className="text-sm font-bold text-gray-800">Master Itinerary</p>
+                    </div>
+                    <div className="p-5 space-y-4">
+                      {days.map((d, i) => (
+                        <div key={i} className="flex gap-3">
+                          <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary mt-0.5">{i + 1}</div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-gray-900">{d.title.replace(/^day\s*\d+[\s:·–\-]*/i, '').trim() || d.title}</p>
+                            {d.desc && <p className="text-xs text-gray-500 mt-1 leading-relaxed">{d.desc}</p>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Hotels ── */}
+                {Array.isArray(pkg.hotels) && pkg.hotels.length > 0 && (
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
+                      <span className="w-7 h-7 rounded-lg bg-orange-50 flex items-center justify-center text-sm">🏨</span>
+                      <p className="text-sm font-bold text-gray-800">Hotels & Accommodation</p>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50 border-b border-gray-100">
+                          <tr>
+                            {['Destination', 'Nights', 'Hotel(s)', 'Meal Plan', 'Room Type'].map(h => (
+                              <th key={h} className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider px-4 py-2.5">{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {pkg.hotels.map((h, i) => (
+                            <tr key={i} className="hover:bg-gray-50/50">
+                              <td className="px-4 py-3 font-semibold text-gray-800 text-xs">{h.destination}</td>
+                              <td className="px-4 py-3 text-gray-600 text-xs">{h.nights}</td>
+                              <td className="px-4 py-3 text-gray-600 text-xs">{h.hotels}</td>
+                              <td className="px-4 py-3 text-gray-600 text-xs">{h.mealPlan}</td>
+                              <td className="px-4 py-3 text-gray-600 text-xs">{h.roomType || '—'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Vehicles ── */}
+                {Array.isArray(pkg.vehicles) && pkg.vehicles.length > 0 && (
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
+                      <span className="w-7 h-7 rounded-lg bg-sky-50 flex items-center justify-center text-sm">🚗</span>
+                      <p className="text-sm font-bold text-gray-800">Vehicles & Transfers</p>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50 border-b border-gray-100">
+                          <tr>
+                            <th className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider px-4 py-2.5">Vehicle Type</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                          {pkg.vehicles.map((v, i) => (
+                            <tr key={i} className="hover:bg-gray-50/50">
+                              <td className="px-4 py-3 font-semibold text-gray-800 text-xs">{v.vehicleType}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Inclusions & Exclusions ── */}
+                {((pkg.inclusions && pkg.inclusions.length > 0) || (pkg.exclusions && pkg.exclusions.length > 0)) && (
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+                    <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
+                      <span className="w-7 h-7 rounded-lg bg-green-50 flex items-center justify-center text-sm">📝</span>
+                      <p className="text-sm font-bold text-gray-800">Inclusions & Exclusions</p>
+                    </div>
+                    <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      {pkg.inclusions && pkg.inclusions.length > 0 && (
+                        <div>
+                          <p className="text-xs font-bold text-green-600 mb-2 flex items-center gap-1">✓ Inclusions</p>
+                          <ul className="space-y-1.5">
+                            {pkg.inclusions.map((inc, i) => (
+                              <li key={i} className="flex items-start gap-2 text-xs text-gray-600">
+                                <span className="text-green-500 flex-shrink-0 mt-0.5">•</span>{inc}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {pkg.exclusions && pkg.exclusions.length > 0 && (
+                        <div>
+                          <p className="text-xs font-bold text-red-500 mb-2 flex items-center gap-1">✗ Exclusions</p>
+                          <ul className="space-y-1.5">
+                            {pkg.exclusions.map((exc, i) => (
+                              <li key={i} className="flex items-start gap-2 text-xs text-gray-600">
+                                <span className="text-red-400 flex-shrink-0 mt-0.5">•</span>{exc}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Payment & Cancellation ── */}
+                {(pkg.paymentPolicy || pkg.cancellationPolicy) && (
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+                    <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
+                      <span className="w-7 h-7 rounded-lg bg-purple-50 flex items-center justify-center text-sm">📋</span>
+                      <p className="text-sm font-bold text-gray-800">Payment & Cancellation Policy</p>
+                    </div>
+                    <div className="p-5 space-y-4">
+                      {pkg.paymentPolicy && (
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Payment Policy</p>
+                          <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-line">{pkg.paymentPolicy}</p>
+                        </div>
+                      )}
+                      {pkg.cancellationPolicy && (
+                        <div>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Cancellation Policy</p>
+                          <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-line">{pkg.cancellationPolicy}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
               </div>
 
-              {/* Overview */}
-              {viewPkgDetail.overview && (
-                <div>
-                  <h3 className="font-bold text-gray-900 text-sm mb-2">Overview</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">{viewPkgDetail.overview}</p>
-                </div>
-              )}
-
-              {/* Highlights */}
-              {viewPkgDetail.highlights && viewPkgDetail.highlights.length > 0 && (
-                <div>
-                  <h3 className="font-bold text-gray-900 text-sm mb-2">Highlights</h3>
-                  <ul className="space-y-1">
-                    {viewPkgDetail.highlights.map((h, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                        <span className="text-primary mt-0.5 flex-shrink-0">✦</span>{h}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Inclusions & Exclusions */}
-              {((viewPkgDetail.inclusions && viewPkgDetail.inclusions.length > 0) || (viewPkgDetail.exclusions && viewPkgDetail.exclusions.length > 0)) && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {viewPkgDetail.inclusions && viewPkgDetail.inclusions.length > 0 && (
-                    <div>
-                      <h3 className="font-bold text-gray-900 text-sm mb-2 flex items-center gap-1.5"><span className="text-green-500">✓</span> Inclusions</h3>
-                      <ul className="space-y-1">
-                        {viewPkgDetail.inclusions.map((inc, i) => (
-                          <li key={i} className="text-xs text-gray-600 flex items-start gap-1.5"><span className="text-green-500 flex-shrink-0 mt-0.5">✓</span>{inc}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {viewPkgDetail.exclusions && viewPkgDetail.exclusions.length > 0 && (
-                    <div>
-                      <h3 className="font-bold text-gray-900 text-sm mb-2 flex items-center gap-1.5"><span className="text-red-400">✗</span> Exclusions</h3>
-                      <ul className="space-y-1">
-                        {viewPkgDetail.exclusions.map((exc, i) => (
-                          <li key={i} className="text-xs text-gray-600 flex items-start gap-1.5"><span className="text-red-400 flex-shrink-0 mt-0.5">✗</span>{exc}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Day-wise itinerary */}
-              {viewPkgDetail.dayWiseItinerary && (
-                <div>
-                  <h3 className="font-bold text-gray-900 text-sm mb-3">Day-wise Itinerary</h3>
-                  <div className="space-y-2">
-                    {viewPkgDetail.dayWiseItinerary.split('\n').filter(Boolean).map((line, i) => {
-                      const isDay = /^day\s*\d+/i.test(line)
-                      return isDay ? (
-                        <p key={i} className="font-semibold text-gray-900 text-sm pt-1">{line}</p>
-                      ) : (
-                        <p key={i} className="text-xs text-gray-500 pl-3 leading-relaxed">{line}</p>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Footer actions */}
-            <div className="px-6 py-4 border-t border-gray-100 flex gap-3">
-              <button
-                onClick={() => { setMarkupPkg(viewPkgDetail); setMarkupPct(0); setMarkupAction('whatsapp'); setViewPkgDetail(null) }}
-                className="flex-1 flex items-center justify-center gap-2 bg-green-500 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-green-600 transition-colors"
-              >
-                <Share2 className="w-4 h-4" />Send on WhatsApp
-              </button>
-              <button
-                onClick={() => { setMarkupPkg(viewPkgDetail); setMarkupPct(0); setMarkupAction('pdf'); setViewPkgDetail(null) }}
-                className="flex items-center justify-center gap-2 bg-primary text-white font-semibold text-sm px-4 py-2.5 rounded-xl hover:bg-primary/90 transition-colors"
-              >
-                <FileText className="w-4 h-4" />Download Quote
-              </button>
+              {/* Footer actions */}
+              <div className="px-5 py-4 border-t border-gray-100 bg-white flex gap-3">
+                <button
+                  onClick={() => { setMarkupPkg(pkg); setMarkupPct(0); setMarkupAction('whatsapp'); setViewPkgDetail(null) }}
+                  className="flex-1 flex items-center justify-center gap-2 bg-green-500 text-white font-semibold text-sm py-2.5 rounded-xl hover:bg-green-600 transition-colors"
+                >
+                  <Share2 className="w-4 h-4" />Send on WhatsApp
+                </button>
+                <button
+                  onClick={() => { setMarkupPkg(pkg); setMarkupPct(0); setMarkupAction('pdf'); setViewPkgDetail(null) }}
+                  className="flex items-center justify-center gap-2 bg-primary text-white font-semibold text-sm px-4 py-2.5 rounded-xl hover:bg-primary/90 transition-colors"
+                >
+                  <FileText className="w-4 h-4" />Download Quote
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* ── Package View — DMC-style full-screen, sidebar-aware ─────────────── */}
       {viewPkgQuot && (
@@ -2651,12 +2896,10 @@ export default function SubAgentDashboardPage() {
           if (markupAction === 'whatsapp') {
             const msg = buildPackageWhatsAppMessage(markupPkg!, finalPrice)
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank')
-            setMarkupPkg(null)
           } else {
-            setPkgPdfPkg(markupPkg)
-            setPkgPdfFinalPrice(finalPrice)
-            setMarkupPkg(null)
+            openPkgPrintWindow(markupPkg!, finalPrice)
           }
+          setMarkupPkg(null)
         }
         return (
           <div className="fixed inset-0 z-[80] bg-black/60 flex items-center justify-center p-4" onClick={() => setMarkupPkg(null)}>
@@ -2752,36 +2995,6 @@ export default function SubAgentDashboardPage() {
         )
       })()}
 
-      {/* ── Package Quote PDF Modal ───────────────────────────────────────────── */}
-      {pkgPdfPkg && (
-        <PackagePdfModal
-          title={pkgPdfPkg.title}
-          destination={pkgPdfPkg.destination}
-          destinationCountry={pkgPdfPkg.destinationCountry}
-          durationDays={pkgPdfPkg.durationDays}
-          durationNights={pkgPdfPkg.durationNights}
-          starCategory={pkgPdfPkg.starCategory}
-          travelType={pkgPdfPkg.travelType}
-          theme={pkgPdfPkg.theme}
-          mood={pkgPdfPkg.mood}
-          currency={pkgPdfPkg.currency}
-          pricePerPerson={pkgPdfPkg.totalPrice ? undefined : pkgPdfFinalPrice}
-          totalPrice={pkgPdfPkg.totalPrice ? pkgPdfFinalPrice : undefined}
-          gst={pkgPdfPkg.gst ?? undefined}
-          overview={pkgPdfPkg.overview}
-          inclusions={pkgPdfPkg.inclusions ?? []}
-          exclusions={pkgPdfPkg.exclusions ?? []}
-          highlights={pkgPdfPkg.highlights ?? []}
-          dayWiseItinerary={pkgPdfPkg.dayWiseItinerary}
-          brandName={subAgentName || 'Travel Agent'}
-          onClose={() => setPkgPdfPkg(null)}
-          onWhatsApp={() => {
-            const msg = buildPackageWhatsAppMessage(pkgPdfPkg, pkgPdfFinalPrice)
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank')
-          }}
-          onPrint={() => openPkgPrintWindow(pkgPdfPkg, pkgPdfFinalPrice)}
-        />
-      )}
     </div>
   )
 }
