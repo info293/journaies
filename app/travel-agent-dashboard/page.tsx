@@ -10,7 +10,7 @@ import {
   MessageSquare, Send, Users, Copy, Check, ExternalLink, Home,
   IndianRupee, Star, ArrowUpRight, Search, ChevronDown, ChevronUp,
   Sparkles, Bot, Mic, MicOff, Volume2, Globe, Share2, FileText, Filter,
-  Columns3, List, X, UserCircle, Upload, ImageIcon
+  Columns3, List, X, UserCircle, Upload, ImageIcon, FileDown
 } from 'lucide-react'
 import SubAgentDemoLoader from '@/components/travel-agent-dashboard/SubAgentDemoLoader'
 import QuotationHistory from '@/components/dmc-dashboard/QuotationHistory'
@@ -18,6 +18,7 @@ import QuotationsManager from '@/components/dmc-dashboard/QuotationsManager'
 import LogoUploader from '@/components/dmc-dashboard/LogoUploader'
 import PackagePdfModal from '@/components/pdf/PackagePdfModal'
 import { openPackagePdfWindow } from '@/lib/generatePackagePdf'
+import { downloadPackageWord } from '@/lib/generatePackageWord'
 import { getCurrencySymbol } from '@/lib/utils/currency'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -341,6 +342,7 @@ export default function SubAgentDashboardPage() {
   const [markupPkg, setMarkupPkg] = useState<AgentPackage | null>(null)
   const [markupPct, setMarkupPct] = useState<number>(0)
   const [markupAction, setMarkupAction] = useState<'whatsapp' | 'pdf'>('whatsapp')
+  const [wordDownloading, setWordDownloading] = useState(false)
   // Package quote PDF (after markup applied)
   const [pkgPdfPkg, setPkgPdfPkg] = useState<AgentPackage | null>(null)
   const [pkgPdfFinalPrice, setPkgPdfFinalPrice] = useState<number>(0)
@@ -2987,6 +2989,46 @@ export default function SubAgentDashboardPage() {
                       ? <><FileText className="w-4 h-4" />Switch to: Download Quote PDF</>
                       : <><Share2 className="w-4 h-4" />Switch to: Send on WhatsApp</>
                     }
+                  </button>
+                  <button
+                    disabled={wordDownloading}
+                    onClick={async () => {
+                      const pkg = markupPkg!
+                      const isTotalWord = Boolean(pkg.totalPrice)
+                      setWordDownloading(true)
+                      try {
+                        await downloadPackageWord({
+                          title: pkg.title,
+                          destination: pkg.destination,
+                          destinationCountry: pkg.destinationCountry,
+                          durationDays: pkg.durationDays,
+                          durationNights: pkg.durationNights,
+                          starCategory: pkg.starCategory,
+                          currency: pkg.currency,
+                          pricePerPerson: isTotalWord ? null : finalPrice,
+                          totalPrice: isTotalWord ? finalPrice : null,
+                          gst: pkg.gst ?? null,
+                          overview: pkg.overview,
+                          inclusions: Array.isArray(pkg.inclusions) ? pkg.inclusions : [],
+                          exclusions: Array.isArray(pkg.exclusions) ? pkg.exclusions : [],
+                          dayWiseItinerary: pkg.dayWiseItinerary,
+                          hotels: Array.isArray(pkg.hotels) && pkg.hotels.length > 0 ? pkg.hotels : undefined,
+                          vehicles: Array.isArray(pkg.vehicles) && pkg.vehicles.length > 0 ? pkg.vehicles : undefined,
+                          paymentPolicy: pkg.paymentPolicy || undefined,
+                          cancellationPolicy: pkg.cancellationPolicy || undefined,
+                          brandName: subAgentName || 'Travel Agent',
+                          agentLogoUrl: profileLogoUrl || undefined,
+                        })
+                        setMarkupPkg(null)
+                      } finally {
+                        setWordDownloading(false)
+                      }
+                    }}
+                    className="w-full flex items-center justify-center gap-2 font-semibold text-sm py-2.5 rounded-xl border-2 border-blue-200 text-blue-700 hover:bg-blue-50 transition-colors disabled:opacity-60"
+                  >
+                    {wordDownloading
+                      ? <><Loader2 className="w-4 h-4 animate-spin" />Generating…</>
+                      : <><FileDown className="w-4 h-4" />Download as Word</>}
                   </button>
                 </div>
               </div>
