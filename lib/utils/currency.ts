@@ -1,3 +1,44 @@
+// Standard local currency for each country (ISO 4217)
+export const COUNTRY_CURRENCY: Record<string, string> = {
+  // South Asia
+  India: 'INR', 'Sri Lanka': 'LKR', Nepal: 'NPR', Bhutan: 'BTN',
+  Bangladesh: 'BDT', Pakistan: 'PKR', Maldives: 'MVR',
+  // Southeast Asia
+  Thailand: 'THB', Singapore: 'SGD', Malaysia: 'MYR', Indonesia: 'IDR',
+  Bali: 'IDR', Philippines: 'PHP', Vietnam: 'VND', Cambodia: 'KHR',
+  Myanmar: 'MMK', Laos: 'LAK', Brunei: 'BND',
+  // East Asia
+  Japan: 'JPY', 'South Korea': 'KRW', China: 'CNY', 'Hong Kong': 'HKD',
+  Taiwan: 'TWD', Macau: 'MOP',
+  // Middle East
+  UAE: 'AED', 'United Arab Emirates': 'AED', Bahrain: 'BHD', Oman: 'OMR',
+  Qatar: 'QAR', 'Saudi Arabia': 'SAR', Kuwait: 'KWD', Jordan: 'JOD',
+  Israel: 'ILS', Turkey: 'TRY', Lebanon: 'LBP',
+  // Europe
+  UK: 'GBP', 'United Kingdom': 'GBP', Switzerland: 'CHF', Norway: 'NOK',
+  Sweden: 'SEK', Denmark: 'DKK', Iceland: 'ISK', 'Czech Republic': 'CZK',
+  Hungary: 'HUF', Poland: 'PLN', Russia: 'RUB', Georgia: 'GEL',
+  // Eurozone
+  France: 'EUR', Germany: 'EUR', Italy: 'EUR', Spain: 'EUR', Portugal: 'EUR',
+  Greece: 'EUR', Netherlands: 'EUR', Austria: 'EUR', Belgium: 'EUR',
+  Finland: 'EUR', Luxembourg: 'EUR', Croatia: 'EUR', Malta: 'EUR',
+  // Americas
+  USA: 'USD', 'United States': 'USD', Canada: 'CAD', Mexico: 'MXN',
+  Brazil: 'BRL', Argentina: 'ARS', Peru: 'PEN', Colombia: 'COP',
+  // Oceania
+  Australia: 'AUD', 'New Zealand': 'NZD', Fiji: 'FJD',
+  // Africa
+  'South Africa': 'ZAR', Kenya: 'KES', Tanzania: 'TZS', Morocco: 'MAD',
+  Egypt: 'EGP', Ethiopia: 'ETB', Mauritius: 'MUR', Seychelles: 'SCR',
+  Rwanda: 'RWF', Ghana: 'GHS', Nigeria: 'NGN', Zimbabwe: 'USD',
+  // Central Asia
+  Kazakhstan: 'KZT', Uzbekistan: 'UZS', Azerbaijan: 'AZN', Armenia: 'AMD',
+}
+
+export function getCurrencyForCountry(country: string): string {
+  return COUNTRY_CURRENCY[country] ?? 'USD'
+}
+
 export const CURRENCIES = [
   { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
   { code: 'USD', symbol: '$', name: 'US Dollar' },

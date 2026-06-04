@@ -4,9 +4,11 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Edit2, Trash2, Eye, EyeOff, Loader2, X, Save, Package, Upload, CheckCircle, AlertCircle, Star, MapPin, Clock, Users, Calendar, Download, Maximize2, GripVertical, ChevronDown, ChevronUp, Search, Filter } from 'lucide-react'
 import { AgentPackage, HotelEntry, VehicleEntry } from '@/lib/types/agent'
-import { CURRENCIES, getCurrencySymbol } from '@/lib/utils/currency'
+import { CURRENCIES, COUNTRY_CURRENCY, getCurrencySymbol, getCurrencyForCountry } from '@/lib/utils/currency'
 import ConfirmModal from './ConfirmModal'
 import { openPackagePdfWindow } from '@/lib/generatePackagePdf'
+import { db } from '@/lib/firebase'
+import { doc, getDoc } from 'firebase/firestore'
 
 // Module-level cache so repeated currency switches in the same session don't re-fetch
 // TTL: 30 minutes
@@ -253,9 +255,19 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
 
   // Currency / exchange rate state
   const [exchangeRate, setExchangeRate] = useState<number>(1)
-  const [rateLoading, setRateLoading] = useState(false)
-  const [rateUpdatedAt, setRateUpdatedAt] = useState<string>('')
-  const [rateError, setRateError] = useState(false)
+  const [viewInINR, setViewInINR] = useState(false)
+
+  // Reset INR toggle when currency or form changes
+  useEffect(() => { setViewInINR(false) }, [form.currency, showForm])
+
+  // Pricing config from Pricing tab (pricingConfig keyed by `${country}|||${currency}`)
+  const [pricingConfig, setPricingConfig] = useState<Record<string, { markupPercent: number; showInINR: boolean }>>({})
+
+  useEffect(() => {
+    getDoc(doc(db, 'agents', agentId))
+      .then(snap => setPricingConfig(snap.data()?.pricingConfig ?? {}))
+      .catch(() => {})
+  }, [agentId])
 
   // List filters
   const [pkgSearch, setPkgSearch] = useState('')
@@ -263,6 +275,55 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
   const [pkgDestFilter, setPkgDestFilter] = useState('all')
   const [pkgHotelFilter, setPkgHotelFilter] = useState<'all' | 'with' | 'without'>('all')
   const [pkgSortBy, setPkgSortBy] = useState<'updatedAt' | 'nights' | 'name'>('updatedAt')
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [bulkDeleting, setBulkDeleting] = useState(false)
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false)
+
+  // Country searchable dropdown
+  const [countrySearch, setCountrySearch] = useState('')
+  const [countryDropdownOpen, setCountryDropdownOpen] = useState(false)
+  const countryRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (countryRef.current && !countryRef.current.contains(e.target as Node)) {
+        setCountryDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [])
+
+  function selectCountry(country: string) {
+    const currencyCode = getCurrencyForCountry(country)
+    setForm(prev => ({ ...prev, destinationCountry: country, currency: currencyCode }))
+    setCountrySearch('')
+    setCountryDropdownOpen(false)
+  }
+
+  function toggleSelectPkg(id: string) {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  async function handleBulkDelete() {
+    if (bulkDeleting) return
+    setBulkDeleting(true)
+    try {
+      await Promise.all(Array.from(selectedIds).map(id =>
+        fetch(`/api/agent/packages/${id}?agentId=${agentId}`, { method: 'DELETE' })
+      ))
+      setSelectedIds(new Set())
+      setShowBulkDeleteConfirm(false)
+      fetchPackages()
+    } finally {
+      setBulkDeleting(false)
+    }
+  }
 
   function makeSnapshot(
     f: typeof EMPTY_FORM,
@@ -296,24 +357,10 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
 
   // Fetch live INR exchange rate whenever currency changes
   useEffect(() => {
-    if (form.currency === 'INR') {
-      setExchangeRate(1)
-      setRateUpdatedAt('')
-      setRateError(false)
-      return
-    }
-    setRateLoading(true)
-    setRateError(false)
+    if (form.currency === 'INR') { setExchangeRate(1); return }
     fetchINRRate(form.currency)
-      .then(({ rate, updatedAt }) => {
-        setExchangeRate(rate)
-        setRateUpdatedAt(updatedAt)
-      })
-      .catch(() => {
-        setExchangeRate(1)
-        setRateError(true)
-      })
-      .finally(() => setRateLoading(false))
+      .then(({ rate }) => setExchangeRate(rate))
+      .catch(() => setExchangeRate(1))
   }, [form.currency])
 
   // Auto-derive days/nights from itinerary when user adds/removes day cards
@@ -803,6 +850,11 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
     }
 
     setSaving(true)
+    const _pKey = `${form.destinationCountry}|||${getCurrencyForCountry(form.destinationCountry || '')}`
+    const _pEntry = pricingConfig[_pKey]
+    const _effRate = (_pEntry?.showInINR && (form.currency || 'INR') !== 'INR')
+      ? exchangeRate + (_pEntry.markupPercent || 0)
+      : exchangeRate
     try {
       const payload = {
         agentId,
@@ -816,7 +868,7 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
         totalPrice: form.totalPrice !== '' ? Number(form.totalPrice) : null,
         gst: form.gst !== '' ? Number(form.gst) : null,
         currency: form.currency || 'INR',
-        priceInINR: Math.round(Number(form.pricePerPerson) * exchangeRate),
+        priceInINR: Math.round(Number(form.pricePerPerson) * _effRate),
         maxGroupSize: Number(form.maxGroupSize) || 20,
         minGroupSize: Number(form.minGroupSize) || 1,
         adults: Number(form.adults) || 0,
@@ -888,6 +940,11 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
     }
     setShowSaveAsModal(false)
     setSaving(true)
+    const _pKey2 = `${form.destinationCountry}|||${getCurrencyForCountry(form.destinationCountry || '')}`
+    const _pEntry2 = pricingConfig[_pKey2]
+    const _effRate = (_pEntry2?.showInINR && (form.currency || 'INR') !== 'INR')
+      ? exchangeRate + (_pEntry2.markupPercent || 0)
+      : exchangeRate
     try {
       const payload = {
         agentId,
@@ -901,7 +958,7 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
         totalPrice: form.totalPrice !== '' ? Number(form.totalPrice) : null,
         gst: form.gst !== '' ? Number(form.gst) : null,
         currency: form.currency || 'INR',
-        priceInINR: Math.round(Number(form.pricePerPerson) * exchangeRate),
+        priceInINR: Math.round(Number(form.pricePerPerson) * _effRate),
         maxGroupSize: Number(form.maxGroupSize) || 20,
         minGroupSize: Number(form.minGroupSize) || 1,
         adults: Number(form.adults) || 0,
@@ -1849,8 +1906,43 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
           if (pkgSortBy === 'nights') return (b.durationNights ?? 0) - (a.durationNights ?? 0)
           return getPkgTime(b) - getPkgTime(a) // updatedAt (fallback createdAt) desc
         })
+        const allFilteredSelected = sortedPackages.length > 0 && sortedPackages.every(p => selectedIds.has(p.id))
+        const someFilteredSelected = !allFilteredSelected && sortedPackages.some(p => selectedIds.has(p.id))
+        const filteredSelectedCount = sortedPackages.filter(p => selectedIds.has(p.id)).length
         return (
         <>
+          {/* Bulk action bar */}
+          {selectedIds.size > 0 && (
+            <div className="flex items-center gap-3 px-4 py-2.5 bg-red-50 border border-red-200 rounded-xl mb-2">
+              <input
+                type="checkbox"
+                checked={allFilteredSelected}
+                ref={el => { if (el) el.indeterminate = someFilteredSelected }}
+                onChange={() => {
+                  if (allFilteredSelected) setSelectedIds(new Set())
+                  else setSelectedIds(new Set(sortedPackages.map(p => p.id)))
+                }}
+                className="w-4 h-4 accent-purple-600 cursor-pointer flex-shrink-0"
+              />
+              <span className="text-sm font-semibold text-red-700">
+                {selectedIds.size} package{selectedIds.size !== 1 ? 's' : ''} selected
+                {filteredSelectedCount !== selectedIds.size && ` (${filteredSelectedCount} visible)`}
+              </span>
+              <button
+                onClick={() => setSelectedIds(new Set())}
+                className="text-xs text-red-400 hover:text-red-600 underline"
+              >
+                Clear
+              </button>
+              <button
+                onClick={() => setShowBulkDeleteConfirm(true)}
+                className="ml-auto flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3.5 py-1.5 rounded-lg transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Delete {selectedIds.size} Package{selectedIds.size !== 1 ? 's' : ''}
+              </button>
+            </div>
+          )}
+
           {/* Filter bar — row 1: search + status */}
           <div className="flex flex-wrap items-center gap-2.5 mb-2">
             <div className="relative flex-1 min-w-[180px]">
@@ -1911,8 +2003,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
             </div>
           ) : (
         <div className="divide-y divide-gray-100 rounded-2xl border border-gray-200 overflow-hidden">
+          {/* Select-all header row */}
+          <div className="flex items-center gap-3 px-4 py-2 bg-gray-50/80 border-b border-gray-100">
+            <input
+              type="checkbox"
+              checked={allFilteredSelected}
+              ref={el => { if (el) el.indeterminate = someFilteredSelected }}
+              onChange={() => {
+                if (allFilteredSelected) setSelectedIds(new Set())
+                else setSelectedIds(new Set(sortedPackages.map(p => p.id)))
+              }}
+              className="w-4 h-4 accent-purple-600 cursor-pointer flex-shrink-0"
+            />
+            <span className="text-xs text-gray-500 font-medium select-none">
+              {allFilteredSelected
+                ? `Deselect all ${sortedPackages.length}`
+                : `Select all ${sortedPackages.length} package${sortedPackages.length !== 1 ? 's' : ''}`}
+            </span>
+            {filteredSelectedCount > 0 && !allFilteredSelected && (
+              <span className="text-xs text-purple-600 font-semibold">{filteredSelectedCount} selected</span>
+            )}
+          </div>
           {sortedPackages.map(pkg => (
-            <div key={pkg.id} className="flex items-center gap-4 p-4 bg-white hover:bg-gray-50">
+            <div key={pkg.id} className={`flex items-center gap-3 p-4 transition-colors ${selectedIds.has(pkg.id) ? 'bg-purple-50 hover:bg-purple-50' : 'bg-white hover:bg-gray-50'}`}>
+              {/* Row checkbox */}
+              <input
+                type="checkbox"
+                checked={selectedIds.has(pkg.id)}
+                onChange={() => toggleSelectPkg(pkg.id)}
+                className="w-4 h-4 accent-purple-600 cursor-pointer flex-shrink-0"
+              />
               {pkg.primaryImageUrl ? (
                 <img
                   src={pkg.primaryImageUrl}
@@ -2011,7 +2131,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
       {showForm && (() => {
         const basePrice = Number(form.pricePerPerson) || 0
         const totalPriceVal = Number(form.totalPrice) || 0
-        const baseINR = totalPriceVal > 0 ? totalPriceVal : (basePrice * exchangeRate)
+        // Use effective rate (exchange rate × pricing markup) when DMC enabled "Show in INR"
+        const pricingKey = `${form.destinationCountry}|||${getCurrencyForCountry(form.destinationCountry || '')}`
+        const pricingEntry = pricingConfig[pricingKey]
+        const effectiveExchangeRate = (pricingEntry?.showInINR && form.currency !== 'INR')
+          ? exchangeRate + (pricingEntry.markupPercent || 0)
+          : exchangeRate
+        const baseINR = totalPriceVal > 0 ? totalPriceVal : (basePrice * effectiveExchangeRate)
         const markup = markupEnabled ? (Number(markupPercent) || 0) : 0
         const finalPrice = baseINR * (1 + markup / 100)
         const currencyMeta = CURRENCIES.find(c => c.code === form.currency) || CURRENCIES[0]
@@ -2119,7 +2245,55 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                     </div>
                     <div>
                       <label className="label">Country</label>
-                      <input name="destinationCountry" value={form.destinationCountry} onChange={handleChange} className="input" />
+                      <div ref={countryRef} className="relative">
+                        <button
+                          type="button"
+                          onClick={() => { setCountryDropdownOpen(v => !v); setCountrySearch('') }}
+                          className="input w-full flex items-center justify-between gap-2 text-left cursor-pointer"
+                        >
+                          <span className={form.destinationCountry ? 'text-gray-900 font-medium truncate' : 'text-gray-400'}>
+                            {form.destinationCountry || 'Select country…'}
+                          </span>
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            {form.destinationCountry && (
+                              <span className="text-[10px] font-mono bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">
+                                {COUNTRY_CURRENCY[form.destinationCountry] ?? getCurrencyForCountry(form.destinationCountry)}
+                              </span>
+                            )}
+                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform flex-shrink-0 ${countryDropdownOpen ? 'rotate-180' : ''}`} />
+                          </div>
+                        </button>
+                        {countryDropdownOpen && (
+                          <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
+                            <div className="p-2 border-b border-gray-100">
+                              <input
+                                autoFocus
+                                value={countrySearch}
+                                onChange={e => setCountrySearch(e.target.value)}
+                                placeholder="Search country…"
+                                className="w-full text-sm px-3 py-1.5 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-300"
+                              />
+                            </div>
+                            <div className="max-h-52 overflow-y-auto">
+                              {(() => {
+                                const filtered = Object.keys(COUNTRY_CURRENCY).sort().filter(c => c.toLowerCase().includes(countrySearch.toLowerCase()))
+                                if (filtered.length === 0) return <p className="text-xs text-gray-400 text-center py-4">No countries found</p>
+                                return filtered.map(country => (
+                                  <button
+                                    key={country}
+                                    type="button"
+                                    onClick={() => selectCountry(country)}
+                                    className={`w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-purple-50 text-left transition-colors ${form.destinationCountry === country ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-gray-700'}`}
+                                  >
+                                    <span>{country}</span>
+                                    <span className="text-[10px] text-gray-400 font-mono ml-2">{COUNTRY_CURRENCY[country]}</span>
+                                  </button>
+                                ))
+                              })()}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div>
                       <label className="label">Days {dayItems.length > 0 && <span className="text-[10px] font-normal text-blue-400 ml-1">(from itinerary)</span>}</label>
@@ -2210,20 +2384,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                 <div className="flex items-start gap-4">
                   <div className="flex-1 space-y-3">
                     <div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Net Cost (per person)</p>
-                      {/* Currency selector + price input */}
-                      <div className="flex gap-2">
-                        <select
-                          name="currency"
-                          value={form.currency}
-                          onChange={handleChange}
-                          className="text-sm font-semibold border border-gray-200 rounded-xl px-3 py-3 bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-200 cursor-pointer flex-shrink-0"
-                        >
-                          {CURRENCIES.map(c => (
-                            <option key={c.code} value={c.code}>{c.symbol} {c.code} — {c.name}</option>
-                          ))}
-                        </select>
-                        <div className="flex-1 flex items-center border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 gap-2 focus-within:ring-2 focus-within:ring-purple-200 focus-within:border-purple-300 transition-all">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Net Cost (per person)</p>
+                        {form.currency !== 'INR' && (
+                          <div className="flex items-center gap-1.5 bg-gray-100 rounded-lg p-0.5">
+                            <button
+                              type="button"
+                              onClick={() => setViewInINR(false)}
+                              className={`text-[10px] font-bold px-2 py-1 rounded-md transition-colors ${!viewInINR ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-400'}`}
+                            >
+                              {form.currency}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setViewInINR(true)}
+                              className={`text-[10px] font-bold px-2 py-1 rounded-md transition-colors ${viewInINR ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-400'}`}
+                            >
+                              INR
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      {/* Price input — shows local currency or INR equivalent based on toggle */}
+                      {viewInINR && form.currency !== 'INR' ? (
+                        <div className="flex items-center border border-purple-200 rounded-xl px-4 py-3 bg-purple-50 gap-2">
+                          <span className="text-purple-400 font-bold text-lg flex-shrink-0">₹</span>
+                          <span className="flex-1 text-xl font-bold text-purple-800">
+                            {basePrice > 0 ? Math.round(basePrice * effectiveExchangeRate).toLocaleString('en-IN') : '—'}
+                          </span>
+                          <span className="text-xs font-bold text-purple-400 flex-shrink-0">INR</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 gap-2 focus-within:ring-2 focus-within:ring-purple-200 focus-within:border-purple-300 transition-all">
                           <span className="text-gray-400 font-bold text-lg flex-shrink-0">{currencyMeta.symbol}</span>
                           <input
                             name="pricePerPerson"
@@ -2234,38 +2426,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                             className="flex-1 text-xl font-bold text-gray-900 border-none outline-none bg-transparent min-w-0"
                             placeholder="0"
                           />
+                          <span className="text-xs font-bold text-gray-400 flex-shrink-0">{form.currency}</span>
                         </div>
-                      </div>
-                      {/* Live INR conversion — only shown for non-INR currencies */}
-                      {form.currency !== 'INR' && (
-                        <div className="mt-2 flex flex-col gap-1">
-                          {rateLoading ? (
-                            <span className="flex items-center gap-1.5 text-xs text-gray-400">
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                              Fetching live rate from open.er-api.com…
-                            </span>
-                          ) : rateError ? (
-                            <span className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-full px-3 py-1">
-                              ⚠️ Could not fetch rate — check connection. Using 1:1 fallback.
-                            </span>
-                          ) : basePrice > 0 ? (
-                            <>
-                              <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-full px-3 py-1 inline-flex items-center gap-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
-                                ≈ ₹{baseINR.toLocaleString('en-IN', { maximumFractionDigits: 0 })} INR
-                                <span className="text-emerald-500 font-medium">·</span>
-                                <span className="font-normal text-emerald-500">1 {form.currency} = ₹{exchangeRate.toLocaleString('en-IN', { maximumFractionDigits: 4 })}</span>
-                              </span>
-                              {rateUpdatedAt && (
-                                <span className="text-[10px] text-gray-400 pl-1">
-                                  Rate last updated: {new Date(rateUpdatedAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
-                                </span>
-                              )}
-                            </>
-                          ) : (
-                            <span className="text-[10px] text-gray-400 pl-1">
-                              {exchangeRate > 1 ? `1 ${form.currency} = ₹${exchangeRate.toLocaleString('en-IN', { maximumFractionDigits: 4 })}` : ''}
-                            </span>
+                      )}
+                      {/* Effective rate badge — visible when DMC has enabled "Show in INR" for this destination */}
+                      {pricingEntry?.showInINR && form.currency !== 'INR' && (
+                        <div className="mt-2 flex items-center gap-2 text-xs font-semibold text-purple-700 bg-purple-50 border border-purple-200 rounded-xl px-3 py-2">
+                          <span className="w-2 h-2 rounded-full bg-purple-400 flex-shrink-0" />
+                          Pricing buffer active · 1&nbsp;{form.currency} = ₹{effectiveExchangeRate.toFixed(2)}
+                          {pricingEntry.markupPercent > 0 && (
+                            <span className="ml-auto text-purple-500 font-medium">+₹{pricingEntry.markupPercent} buffer</span>
                           )}
                         </div>
                       )}
@@ -2328,16 +2498,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                   </div>
                   <div className="bg-purple-600 text-white rounded-2xl p-4 min-w-[160px] flex-shrink-0 text-center shadow-lg shadow-purple-200">
                     <p className="text-[9px] font-bold uppercase tracking-widest opacity-70 mb-1">Final Quotation Price</p>
-                    <p className="text-[9px] opacity-50 mb-2">(in INR)</p>
+                    <p className="text-[9px] opacity-50 mb-2">({form.currency || 'INR'})</p>
                     <p className="text-2xl font-bold leading-tight">
-                      ₹{finalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {currencyMeta.symbol}{((totalPriceVal > 0 ? totalPriceVal : basePrice) * (1 + markup / 100)).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
                     </p>
                     <p className="text-[10px] opacity-60 mt-1.5">
                       {markupEnabled ? `Includes ${markup}% markup` : 'No markup applied'}
                     </p>
-                    {form.currency !== 'INR' && basePrice > 0 && !rateLoading && (
-                      <p className="text-[9px] opacity-50 mt-1">{currencyMeta.symbol}{basePrice.toLocaleString()} × {exchangeRate.toFixed(2)}</p>
-                    )}
                   </div>
                 </div>
               </div>
@@ -3448,6 +3615,42 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
           onConfirm={() => handleDelete(deleteConfirm)}
           onCancel={() => setDeleteConfirm(null)}
         />
+      )}
+
+      {/* ── Bulk Delete Confirm Modal ─────────────────────────────────────── */}
+      {showBulkDeleteConfirm && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <Trash2 className="w-5 h-5 text-red-500" />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900 text-base">Delete {selectedIds.size} Package{selectedIds.size !== 1 ? 's' : ''}?</h3>
+                <p className="text-xs text-gray-400 mt-0.5">This action cannot be undone.</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mb-5">
+              You are about to permanently delete <span className="font-semibold text-red-600">{selectedIds.size} package{selectedIds.size !== 1 ? 's' : ''}</span>. All data including itinerary, hotels, and pricing will be lost.
+            </p>
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={() => setShowBulkDeleteConfirm(false)}
+                className="px-4 py-2 text-xs font-bold text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                disabled={bulkDeleting}
+                className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-red-500 hover:bg-red-600 disabled:opacity-60 disabled:cursor-not-allowed rounded-xl transition-colors"
+              >
+                {bulkDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                {bulkDeleting ? 'Deleting…' : `Delete ${selectedIds.size} Package${selectedIds.size !== 1 ? 's' : ''}`}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

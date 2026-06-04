@@ -9,7 +9,7 @@ import { motion } from 'framer-motion'
 import {
   Package, Inbox, BarChart2, Users, LogOut, Copy, Check, ExternalLink,
   Building2, Clock, AlertCircle, Loader2, UserCog, Activity, Code2,
-  Home, Settings, MessageSquare, Bell
+  Home, Settings, MessageSquare, Bell, TrendingUp
 } from 'lucide-react'
 import DashboardHome from '@/components/dmc-dashboard/DashboardHome'
 import PackageManager from '@/components/dmc-dashboard/PackageManager'
@@ -23,9 +23,10 @@ import AgentSettings from '@/components/dmc-dashboard/AgentSettings'
 import QuotationsManager from '@/components/dmc-dashboard/QuotationsManager'
 import QuotationHistory from '@/components/dmc-dashboard/QuotationHistory'
 import NotificationsPanel from '@/components/dmc-dashboard/NotificationsPanel'
+import PricingManager from '@/components/dmc-dashboard/PricingManager'
 import type { Agent } from '@/lib/types/agent'
 
-type Tab = 'home' | 'packages' | 'bookings' | 'analytics' | 'customers' | 'team' | 'quotations' | 'quotation_history' | 'crm' | 'embed' | 'settings'
+type Tab = 'home' | 'packages' | 'bookings' | 'analytics' | 'customers' | 'team' | 'quotations' | 'quotation_history' | 'crm' | 'embed' | 'settings' | 'pricing'
 
 interface TabDef {
   id: Tab
@@ -42,7 +43,7 @@ export default function AgentDashboardPage() {
   const pathname = usePathname()
   const pathSegments = pathname.split('/').filter(Boolean)
   const urlSegment = pathSegments.at(-1) ?? ''
-  const DMC_VALID_TABS: Tab[] = ['home','packages','bookings','analytics','customers','team','quotations','quotation_history','crm','embed','settings']
+  const DMC_VALID_TABS: Tab[] = ['home','packages','bookings','analytics','customers','team','quotations','quotation_history','crm','embed','settings','pricing']
   // Detect /dmc-dashboard/packages/new or /dmc-dashboard/packages/[id]/edit
   const isPackageFormRoute = pathSegments.length >= 3 && pathSegments[1] === 'packages'
   const openPackageCreate = isPackageFormRoute && pathSegments[2] === 'new'
@@ -218,6 +219,7 @@ export default function AgentDashboardPage() {
     // { id: 'analytics', label: 'Analytics', icon: <BarChart2 className="w-4 h-4" /> },
     // { id: 'customers', label: 'Customers', icon: <Users className="w-4 h-4" /> },
     { id: 'team', label: 'Travel Agents', icon: <UserCog className="w-4 h-4" /> },
+    { id: 'pricing', label: 'Pricing', icon: <TrendingUp className="w-4 h-4" /> },
     // { id: 'quotation_history', label: 'Quote History', icon: <BarChart2 className="w-4 h-4" /> },
     // { id: 'crm', label: 'CRM', icon: <Activity className="w-4 h-4" /> },
     // { id: 'embed', label: 'Embed', icon: <Code2 className="w-4 h-4" /> },
@@ -231,6 +233,7 @@ export default function AgentDashboardPage() {
     home: 'Dashboard', packages: 'Packages', bookings: 'Bookings',
     analytics: 'Analytics', customers: 'Customers', team: 'Travel Agents',
     quotations: 'Quotations', quotation_history: 'Quote History', crm: 'CRM & Analytics', embed: 'Embed Planner', settings: 'Settings',
+    pricing: 'Pricing',
   }
 
   return (
@@ -414,6 +417,7 @@ export default function AgentDashboardPage() {
                 {tab === 'crm' && <CRMAnalytics agentId={currentUser.uid} agentSlug={agentSlug} />}
                 {tab === 'embed' && <EmbedCode agentSlug={agentSlug} />}
                 {tab === 'settings' && <AgentSettings agentId={currentUser.uid} agentSlug={agentSlug} onSaved={fetchAgent} onLogout={handleLogout} />}
+                {tab === 'pricing' && <PricingManager agentId={currentUser.uid} />}
               </motion.div>
             )}
           </div>

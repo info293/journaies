@@ -232,33 +232,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw signInError
     }
 
-    // Update last login in Firestore
+    // Update last login in Firestore — non-fatal: a Firestore permission error must NOT block login
     if (userCredential.user) {
-      const userRef = doc(db, 'users', userCredential.user.uid)
-      console.log('[AUTH-DEBUG] Fetching Firestore user doc for UID:', userCredential.user.uid)
-      const userSnap = await getDoc(userRef)
+      try {
+        const userRef = doc(db, 'users', userCredential.user.uid)
+        console.log('[AUTH-DEBUG] Fetching Firestore user doc for UID:', userCredential.user.uid)
+        const userSnap = await getDoc(userRef)
 
-      if (userSnap.exists()) {
-        console.log('[AUTH-DEBUG] ✅ Firestore user doc found')
-        console.log('[AUTH-DEBUG] User role:', userSnap.data()?.role)
-        console.log('[AUTH-DEBUG] User agentStatus:', userSnap.data()?.agentStatus)
-        await setDoc(userRef, {
-          lastLogin: serverTimestamp(),
-        }, { merge: true })
-      } else {
-        console.warn('[AUTH-DEBUG] ⚠️ No Firestore user doc found — creating default user doc')
-        const userDoc = {
-          email: userCredential.user.email,
-          displayName: userCredential.user.displayName || '',
-          photoURL: userCredential.user.photoURL || '',
-          role: 'user' as const,
-          createdAt: serverTimestamp(),
-          lastLogin: serverTimestamp(),
-          isActive: true,
-          permissions: [] as string[]
+        if (userSnap.exists()) {
+          console.log('[AUTH-DEBUG] ✅ Firestore user doc found')
+          console.log('[AUTH-DEBUG] User role:', userSnap.data()?.role)
+          console.log('[AUTH-DEBUG] User agentStatus:', userSnap.data()?.agentStatus)
+          await setDoc(userRef, { lastLogin: serverTimestamp() }, { merge: true })
+        } else {
+          console.warn('[AUTH-DEBUG] ⚠️ No Firestore user doc found — creating default user doc')
+          const userDoc = {
+            email: userCredential.user.email,
+            displayName: userCredential.user.displayName || '',
+            photoURL: userCredential.user.photoURL || '',
+            role: 'user' as const,
+            createdAt: serverTimestamp(),
+            lastLogin: serverTimestamp(),
+            isActive: true,
+            permissions: [] as string[]
+          }
+          await setDoc(userRef, userDoc)
+          console.warn('[AUTH-DEBUG] ⚠️ New user doc created with role: user (NOT admin!)')
         }
-        await setDoc(userRef, userDoc)
-        console.warn('[AUTH-DEBUG] ⚠️ New user doc created with role: user (NOT admin!)')
+      } catch (firestoreError: any) {
+        // Auth succeeded — don't fail login over a Firestore error (e.g. rules, offline)
+        console.warn('[AUTH-DEBUG] ⚠️ Firestore lastLogin update failed (non-fatal):', firestoreError?.message)
       }
     }
   }

@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 import { Mail, Lock, Loader2, Eye, EyeOff, MapPin, TrendingUp, Users, Package } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -82,11 +81,8 @@ export default function AgentLoginPage() {
           {/* Feature list */}
           <div className="space-y-5 flex-1">
             {FEATURES.map((f, i) => (
-              <motion.div
+              <div
                 key={f.title}
-                initial={{ opacity: 0, x: -16 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 + i * 0.08 }}
                 className="flex items-start gap-4"
               >
                 <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
@@ -96,7 +92,7 @@ export default function AgentLoginPage() {
                   <p className="text-white font-semibold text-sm">{f.title}</p>
                   <p className="text-white/60 text-xs mt-0.5 leading-relaxed">{f.desc}</p>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
 
@@ -109,12 +105,7 @@ export default function AgentLoginPage() {
 
       {/* ── Right panel — form ── */}
       <div className="flex-1 flex items-center justify-center bg-gray-50 px-6 py-12">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="w-full max-w-md"
-        >
+        <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="flex items-center gap-2 mb-8 lg:hidden">
             <div className="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center text-white font-bold">T</div>
@@ -194,7 +185,7 @@ export default function AgentLoginPage() {
               </p>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   )
