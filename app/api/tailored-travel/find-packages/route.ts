@@ -241,6 +241,19 @@ export async function POST(request: Request) {
                         data.destination.toLowerCase().trim() === dest.trim()
                     )
                 ) {
+                    // If the package is priced in a foreign currency, convert all prices to INR
+                    // using the pre-computed priceInINR (saved with exchange rate + buffer at edit time)
+                    const isForeignCurrency = data.currency && data.currency !== 'INR'
+                    const inrPerUnit = isForeignCurrency && data.pricePerPerson > 0
+                        ? (data.priceInINR || 0) / data.pricePerPerson
+                        : 1
+                    const displayPricePerPerson = isForeignCurrency
+                        ? (data.priceInINR || 0)
+                        : (data.pricePerPerson || 0)
+                    const displayTotalPrice = data.totalPrice != null
+                        ? (isForeignCurrency ? Math.round(data.totalPrice * inrPerUnit) : data.totalPrice)
+                        : null
+
                     allPackages.push({
                         id: d.id,
                         source: 'agent',
@@ -251,8 +264,8 @@ export async function POST(request: Request) {
                         Overview: data.overview || '',
                         Duration_Days: data.durationDays || 0,
                         Duration_Nights: data.durationNights || 0,
-                        Price_Min_INR: data.pricePerPerson || data.totalPrice || 0,
-                        totalPrice: data.totalPrice ?? null,
+                        Price_Min_INR: displayPricePerPerson || displayTotalPrice || 0,
+                        totalPrice: displayTotalPrice,
                         gst: data.gst ?? null,
                         Travel_Type: data.travelType || '',
                         Mood: data.mood || '',
@@ -268,7 +281,7 @@ export async function POST(request: Request) {
                         Vehicles: Array.isArray(data.vehicles) ? data.vehicles : [],
                         PaymentPolicy: data.paymentPolicy || '',
                         CancellationPolicy: data.cancellationPolicy || '',
-                        Currency: data.currency || 'INR',
+                        Currency: isForeignCurrency ? 'INR' : (data.currency || 'INR'),
                         // Agent-specific extras
                         agentPackageTitle: data.title || data.destination,
                         agentId,
