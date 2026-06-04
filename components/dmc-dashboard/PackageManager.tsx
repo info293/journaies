@@ -257,13 +257,6 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
   const [exchangeRate, setExchangeRate] = useState<number>(1)
   const [viewInINR, setViewInINR] = useState(false)
 
-  // Sync INR toggle with pricingConfig showInINR setting (or reset on currency/form change)
-  useEffect(() => {
-    if (!showForm) { setViewInINR(false); return }
-    const pKey = `${form.destinationCountry}|||${getCurrencyForCountry(form.destinationCountry || '')}`
-    setViewInINR(pricingConfig[pKey]?.showInINR ?? false)
-  }, [form.currency, form.destinationCountry, showForm, pricingConfig])
-
   // Pricing config from Pricing tab (pricingConfig keyed by `${country}|||${currency}`)
   const [pricingConfig, setPricingConfig] = useState<Record<string, { markupPercent: number; showInINR: boolean }>>({})
 
@@ -272,6 +265,13 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
       .then(snap => setPricingConfig(snap.data()?.pricingConfig ?? {}))
       .catch(() => {})
   }, [agentId])
+
+  // Sync INR toggle with pricingConfig showInINR setting (or reset on currency/form change)
+  useEffect(() => {
+    if (!showForm) { setViewInINR(false); return }
+    const pKey = `${form.destinationCountry}|||${getCurrencyForCountry(form.destinationCountry || '')}`
+    setViewInINR(pricingConfig[pKey]?.showInINR ?? false)
+  }, [form.currency, form.destinationCountry, showForm, pricingConfig])
 
   // List filters
   const [pkgSearch, setPkgSearch] = useState('')
