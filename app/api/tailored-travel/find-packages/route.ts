@@ -248,14 +248,16 @@ export async function POST(request: Request) {
                     const pkgCurrency = data.currency || 'INR'
                     const pricingKey = `${data.destinationCountry}|||${pkgCurrency}`
                     const showInINR = pricingConfig[pricingKey]?.showInINR ?? false
-                    const convertToINR = pkgCurrency !== 'INR' && showInINR
 
-                    // Recover the effective exchange rate (rate + buffer) from the stored priceInINR.
-                    // priceInINR = (pricePerPerson || totalPrice) * effectiveRate at save time.
+                    // Recover the effective exchange rate from priceInINR saved at edit time.
+                    // priceInINR = (pricePerPerson || totalPrice) * effectiveRate.
+                    // Guard: if priceInINR is 0 (old package not yet re-saved), don't convert —
+                    // that would produce ₹0. The package must be re-saved once to populate it.
                     const localBase = data.pricePerPerson || data.totalPrice || 0
-                    const inrPerUnit = convertToINR && localBase > 0
-                        ? (data.priceInINR || 0) / localBase
-                        : 1
+                    const storedINR = data.priceInINR || 0
+                    const hasValidRate = pkgCurrency !== 'INR' && storedINR > 0 && localBase > 0
+                    const convertToINR = showInINR && hasValidRate
+                    const inrPerUnit = hasValidRate ? storedINR / localBase : 1
 
                     const displayPricePerPerson = convertToINR
                         ? Math.round((data.pricePerPerson || 0) * inrPerUnit)
@@ -291,7 +293,7 @@ export async function POST(request: Request) {
                         Vehicles: Array.isArray(data.vehicles) ? data.vehicles : [],
                         PaymentPolicy: data.paymentPolicy || '',
                         CancellationPolicy: data.cancellationPolicy || '',
-                        Currency: convertToINR ? 'INR' : pkgCurrency,
+                        Currency: convertToINR ? 'INR' : pkgCurrency,  // INR only when rate is valid
                         // Agent-specific extras
                         agentPackageTitle: data.title || data.destination,
                         agentId,
