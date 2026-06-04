@@ -222,6 +222,8 @@ export async function POST(request: Request) {
             const agentDoc = agentSnap.docs[0]
             const agentId = agentDoc.id
             const agentData = agentDoc.data()
+            const pricingConfig: Record<string, { markupPercent: number; showInINR: boolean }> =
+                agentData.pricingConfig ?? {}
 
             // Fetch agent's packages
             const agentPkgRef = collection(db, 'agent_packages')
@@ -241,17 +243,25 @@ export async function POST(request: Request) {
                         data.destination.toLowerCase().trim() === dest.trim()
                     )
                 ) {
-                    // If the package is priced in a foreign currency, convert all prices to INR
-                    // using the pre-computed priceInINR (saved with exchange rate + buffer at edit time)
-                    const isForeignCurrency = data.currency && data.currency !== 'INR'
-                    const inrPerUnit = isForeignCurrency && data.pricePerPerson > 0
-                        ? (data.priceInINR || 0) / data.pricePerPerson
+                    // Determine whether to show price in INR based on the Pricing page config.
+                    // The key matches the one used in PricingManager: `${country}|||${currency}`.
+                    const pkgCurrency = data.currency || 'INR'
+                    const pricingKey = `${data.destinationCountry}|||${pkgCurrency}`
+                    const showInINR = pricingConfig[pricingKey]?.showInINR ?? false
+                    const convertToINR = pkgCurrency !== 'INR' && showInINR
+
+                    // Recover the effective exchange rate (rate + buffer) from the stored priceInINR.
+                    // priceInINR = (pricePerPerson || totalPrice) * effectiveRate at save time.
+                    const localBase = data.pricePerPerson || data.totalPrice || 0
+                    const inrPerUnit = convertToINR && localBase > 0
+                        ? (data.priceInINR || 0) / localBase
                         : 1
-                    const displayPricePerPerson = isForeignCurrency
-                        ? (data.priceInINR || 0)
+
+                    const displayPricePerPerson = convertToINR
+                        ? Math.round((data.pricePerPerson || 0) * inrPerUnit)
                         : (data.pricePerPerson || 0)
                     const displayTotalPrice = data.totalPrice != null
-                        ? (isForeignCurrency ? Math.round(data.totalPrice * inrPerUnit) : data.totalPrice)
+                        ? (convertToINR ? Math.round(data.totalPrice * inrPerUnit) : data.totalPrice)
                         : null
 
                     allPackages.push({
@@ -281,7 +291,7 @@ export async function POST(request: Request) {
                         Vehicles: Array.isArray(data.vehicles) ? data.vehicles : [],
                         PaymentPolicy: data.paymentPolicy || '',
                         CancellationPolicy: data.cancellationPolicy || '',
-                        Currency: isForeignCurrency ? 'INR' : (data.currency || 'INR'),
+                        Currency: convertToINR ? 'INR' : pkgCurrency,
                         // Agent-specific extras
                         agentPackageTitle: data.title || data.destination,
                         agentId,

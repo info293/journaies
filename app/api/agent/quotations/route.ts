@@ -71,6 +71,8 @@ export async function POST(request: Request) {
       preferredDates, groupSize, adults, kids, infants, rooms,
       specialRequests, wizardData, selectedPackage,
       customPackageData, quotedPrice, agentOwned,
+      quotedPricePerPerson, quotedPriceTotal, basePrice,
+      serviceFee, feeType, feeValue, currency, showPrice,
     } = body
 
     if (!agentId || !subAgentId || !customerName) {
@@ -125,6 +127,14 @@ export async function POST(request: Request) {
       agentOwned: agentOwned || false,
       status: 'pending',
       quotedPrice: quotedPrice ?? null,
+      quotedPricePerPerson: quotedPricePerPerson ?? null,
+      quotedPriceTotal: quotedPriceTotal ?? null,
+      basePrice: basePrice ?? null,
+      serviceFee: serviceFee ?? null,
+      feeType: feeType ?? null,
+      feeValue: feeValue ?? null,
+      currency: currency || 'INR',
+      showPrice: showPrice ?? true,
       agentNotes: '',
       subAgentNotes: '',
       messages: [],

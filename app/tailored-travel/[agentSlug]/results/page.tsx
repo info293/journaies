@@ -1101,6 +1101,14 @@ function NameCaptureModal({ action, agentInfo, pkg, wizardData, subAgentId, subA
           infants: wizardData?.groupSize?.infants || 0,
           rooms: wizardData?.passengers?.rooms || 1, specialRequests: '',
           wizardData, selectedPackage: pkg,
+          quotedPricePerPerson: finalPricePerPerson,
+          quotedPriceTotal,
+          basePrice,
+          serviceFee,
+          feeType: addServiceFee ? feeType : null,
+          feeValue: addServiceFee ? feeValue : null,
+          currency: pkg.Currency || 'INR',
+          showPrice,
         }),
       })
       if (agentSlug && sessionId) {
