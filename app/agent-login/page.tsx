@@ -23,9 +23,14 @@ export default function AgentLoginPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
+  // Redirect only after auth state is fully resolved (loading=false + role confirmed)
   useEffect(() => {
-    if (!loading && currentUser && isAgent) router.push('/dmc-dashboard')
-  }, [currentUser, isAgent, loading, router])
+    if (loading) return
+    if (currentUser && isAgent) router.push('/dmc-dashboard')
+    if (currentUser && !isAgent && !submitting) {
+      setError('This account does not have partner access. Contact support if you believe this is a mistake.')
+    }
+  }, [currentUser, isAgent, loading, submitting])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -33,7 +38,8 @@ export default function AgentLoginPage() {
     setSubmitting(true)
     try {
       await login(email, password)
-      router.push('/dmc-dashboard')
+      // Don't push here — wait for onAuthStateChanged to confirm the role,
+      // then the useEffect above will redirect once loading=false and isAgent=true
     } catch (err: any) {
       const code = err.code || ''
       if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {

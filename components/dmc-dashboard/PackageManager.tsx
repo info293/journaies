@@ -852,9 +852,9 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
     setSaving(true)
     const _pKey = `${form.destinationCountry}|||${getCurrencyForCountry(form.destinationCountry || '')}`
     const _pEntry = pricingConfig[_pKey]
-    const _effRate = (_pEntry?.showInINR && (form.currency || 'INR') !== 'INR')
-      ? exchangeRate + (_pEntry.markupPercent || 0)
-      : exchangeRate
+    const _effRate = (form.currency || 'INR') !== 'INR'
+      ? exchangeRate + (_pEntry?.markupPercent || 0)
+      : 1
     try {
       const payload = {
         agentId,
@@ -942,9 +942,9 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
     setSaving(true)
     const _pKey2 = `${form.destinationCountry}|||${getCurrencyForCountry(form.destinationCountry || '')}`
     const _pEntry2 = pricingConfig[_pKey2]
-    const _effRate = (_pEntry2?.showInINR && (form.currency || 'INR') !== 'INR')
-      ? exchangeRate + (_pEntry2.markupPercent || 0)
-      : exchangeRate
+    const _effRate = (form.currency || 'INR') !== 'INR'
+      ? exchangeRate + (_pEntry2?.markupPercent || 0)
+      : 1
     try {
       const payload = {
         agentId,
@@ -2131,12 +2131,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
       {showForm && (() => {
         const basePrice = Number(form.pricePerPerson) || 0
         const totalPriceVal = Number(form.totalPrice) || 0
-        // Use effective rate (exchange rate × pricing markup) when DMC enabled "Show in INR"
+        // Always apply the configured exchange rate buffer when converting to INR
         const pricingKey = `${form.destinationCountry}|||${getCurrencyForCountry(form.destinationCountry || '')}`
         const pricingEntry = pricingConfig[pricingKey]
-        const effectiveExchangeRate = (pricingEntry?.showInINR && form.currency !== 'INR')
-          ? exchangeRate + (pricingEntry.markupPercent || 0)
-          : exchangeRate
+        const bufferAmount = form.currency !== 'INR' ? (pricingEntry?.markupPercent || 0) : 0
+        const effectiveExchangeRate = form.currency !== 'INR'
+          ? exchangeRate + bufferAmount
+          : 1
         const baseINR = totalPriceVal > 0 ? totalPriceVal : (basePrice * effectiveExchangeRate)
         const markup = markupEnabled ? (Number(markupPercent) || 0) : 0
         const finalPrice = baseINR * (1 + markup / 100)
@@ -2429,13 +2430,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                           <span className="text-xs font-bold text-gray-400 flex-shrink-0">{form.currency}</span>
                         </div>
                       )}
-                      {/* Effective rate badge — visible when DMC has enabled "Show in INR" for this destination */}
-                      {pricingEntry?.showInINR && form.currency !== 'INR' && (
+                      {/* Effective rate — visible whenever viewing in INR mode */}
+                      {viewInINR && form.currency !== 'INR' && (
                         <div className="mt-2 flex items-center gap-2 text-xs font-semibold text-purple-700 bg-purple-50 border border-purple-200 rounded-xl px-3 py-2">
                           <span className="w-2 h-2 rounded-full bg-purple-400 flex-shrink-0" />
-                          Pricing buffer active · 1&nbsp;{form.currency} = ₹{effectiveExchangeRate.toFixed(2)}
-                          {pricingEntry.markupPercent > 0 && (
-                            <span className="ml-auto text-purple-500 font-medium">+₹{pricingEntry.markupPercent} buffer</span>
+                          Effective rate: 1&nbsp;{form.currency} = ₹{effectiveExchangeRate.toFixed(2)}
+                          {bufferAmount > 0 ? (
+                            <span className="ml-auto text-purple-500 font-medium">Live ₹{exchangeRate.toFixed(2)} + ₹{bufferAmount} buffer</span>
+                          ) : (
+                            <span className="ml-auto text-gray-400 font-normal">Live rate · no buffer set</span>
                           )}
                         </div>
                       )}
@@ -2497,14 +2500,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                     </div>
                   </div>
                   <div className="bg-purple-600 text-white rounded-2xl p-4 min-w-[160px] flex-shrink-0 text-center shadow-lg shadow-purple-200">
-                    <p className="text-[9px] font-bold uppercase tracking-widest opacity-70 mb-1">Final Quotation Price</p>
-                    <p className="text-[9px] opacity-50 mb-2">({form.currency || 'INR'})</p>
-                    <p className="text-2xl font-bold leading-tight">
-                      {currencyMeta.symbol}{((totalPriceVal > 0 ? totalPriceVal : basePrice) * (1 + markup / 100)).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                    {/* Label mirrors exactly what the PDF shows */}
+                    <p className="text-[9px] font-bold uppercase tracking-widest opacity-70 mb-0.5">
+                      {totalPriceVal > 0 ? 'Total Package Price' : 'Per Person Price'}
                     </p>
-                    <p className="text-[10px] opacity-60 mt-1.5">
-                      {markupEnabled ? `Includes ${markup}% markup` : 'No markup applied'}
+                    <p className="text-[8px] opacity-40 mb-2">
+                      {viewInINR && form.currency !== 'INR' ? 'INR' : (form.currency || 'INR')}
+                      {form.gst ? ` · +${form.gst}% GST` : ''}
                     </p>
+                    {viewInINR && form.currency !== 'INR' ? (
+                      <>
+                        <p className="text-2xl font-bold leading-tight">
+                          ₹{Math.round((totalPriceVal > 0 ? totalPriceVal : basePrice) * effectiveExchangeRate * (1 + markup / 100)).toLocaleString('en-IN')}
+                        </p>
+                        <p className="text-[10px] opacity-60 mt-1.5">
+                          {bufferAmount > 0 ? `Rate ₹${effectiveExchangeRate.toFixed(2)} incl. buffer` : `Live rate ₹${exchangeRate.toFixed(2)}`}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-2xl font-bold leading-tight">
+                          {currencyMeta.symbol}{((totalPriceVal > 0 ? totalPriceVal : basePrice) * (1 + markup / 100)).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                        </p>
+                        <p className="text-[10px] opacity-60 mt-1.5">
+                          {totalPriceVal > 0 ? 'Group total · from Total Price field' : 'Per person · from Price field'}
+                        </p>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
