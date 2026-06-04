@@ -2385,53 +2385,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                 <div className="flex items-start gap-4">
                   <div className="flex-1 space-y-3">
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Net Cost (per person)</p>
-                        {form.currency !== 'INR' && (
-                          <div className="flex items-center gap-1.5 bg-gray-100 rounded-lg p-0.5">
-                            <button
-                              type="button"
-                              onClick={() => setViewInINR(false)}
-                              className={`text-[10px] font-bold px-2 py-1 rounded-md transition-colors ${!viewInINR ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-400'}`}
-                            >
-                              {form.currency}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setViewInINR(true)}
-                              className={`text-[10px] font-bold px-2 py-1 rounded-md transition-colors ${viewInINR ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-400'}`}
-                            >
-                              INR
-                            </button>
-                          </div>
-                        )}
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Net Cost (per person)</p>
+                      {/* Price input — always shows local currency */}
+                      <div className="flex items-center border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 gap-2 focus-within:ring-2 focus-within:ring-purple-200 focus-within:border-purple-300 transition-all">
+                        <span className="text-gray-400 font-bold text-lg flex-shrink-0">{currencyMeta.symbol}</span>
+                        <input
+                          name="pricePerPerson"
+                          type="number"
+                          value={form.pricePerPerson}
+                          onChange={handleChange}
+                          onFocus={e => { if (e.target.value === '0') setForm(p => ({ ...p, pricePerPerson: '' })) }}
+                          className="flex-1 text-xl font-bold text-gray-900 border-none outline-none bg-transparent min-w-0"
+                          placeholder="0"
+                        />
+                        <span className="text-xs font-bold text-gray-400 flex-shrink-0">{form.currency}</span>
                       </div>
-                      {/* Price input — shows local currency or INR equivalent based on toggle */}
-                      {viewInINR && form.currency !== 'INR' ? (
-                        <div className="flex items-center border border-purple-200 rounded-xl px-4 py-3 bg-purple-50 gap-2">
-                          <span className="text-purple-400 font-bold text-lg flex-shrink-0">₹</span>
-                          <span className="flex-1 text-xl font-bold text-purple-800">
-                            {basePrice > 0 ? Math.round(basePrice * effectiveExchangeRate).toLocaleString('en-IN') : '—'}
-                          </span>
-                          <span className="text-xs font-bold text-purple-400 flex-shrink-0">INR</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 gap-2 focus-within:ring-2 focus-within:ring-purple-200 focus-within:border-purple-300 transition-all">
-                          <span className="text-gray-400 font-bold text-lg flex-shrink-0">{currencyMeta.symbol}</span>
-                          <input
-                            name="pricePerPerson"
-                            type="number"
-                            value={form.pricePerPerson}
-                            onChange={handleChange}
-                            onFocus={e => { if (e.target.value === '0') setForm(p => ({ ...p, pricePerPerson: '' })) }}
-                            className="flex-1 text-xl font-bold text-gray-900 border-none outline-none bg-transparent min-w-0"
-                            placeholder="0"
-                          />
-                          <span className="text-xs font-bold text-gray-400 flex-shrink-0">{form.currency}</span>
-                        </div>
-                      )}
-                      {/* Effective rate — visible whenever viewing in INR mode */}
-                      {viewInINR && form.currency !== 'INR' && (
+                      {/* Effective rate — always visible when a foreign currency is set */}
+                      {form.currency !== 'INR' && (
                         <div className="mt-2 flex items-center gap-2 text-xs font-semibold text-purple-700 bg-purple-50 border border-purple-200 rounded-xl px-3 py-2">
                           <span className="w-2 h-2 rounded-full bg-purple-400 flex-shrink-0" />
                           Effective rate: 1&nbsp;{form.currency} = ₹{effectiveExchangeRate.toFixed(2)}
@@ -2500,6 +2470,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                     </div>
                   </div>
                   <div className="bg-purple-600 text-white rounded-2xl p-4 min-w-[160px] flex-shrink-0 text-center shadow-lg shadow-purple-200">
+                    {/* Currency toggle — only affects this Final Price display */}
+                    {form.currency !== 'INR' && (
+                      <div className="flex items-center justify-center gap-1 bg-purple-700/50 rounded-lg p-0.5 mb-2">
+                        <button
+                          type="button"
+                          onClick={() => setViewInINR(false)}
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-md transition-colors ${!viewInINR ? 'bg-white text-purple-700 shadow-sm' : 'text-purple-200'}`}
+                        >
+                          {form.currency}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setViewInINR(true)}
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-md transition-colors ${viewInINR ? 'bg-white text-purple-700 shadow-sm' : 'text-purple-200'}`}
+                        >
+                          INR
+                        </button>
+                      </div>
+                    )}
                     {/* Label mirrors exactly what the PDF shows */}
                     <p className="text-[9px] font-bold uppercase tracking-widest opacity-70 mb-0.5">
                       {totalPriceVal > 0 ? 'Total Package Price' : 'Per Person Price'}
