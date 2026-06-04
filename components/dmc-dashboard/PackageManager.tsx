@@ -257,8 +257,12 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
   const [exchangeRate, setExchangeRate] = useState<number>(1)
   const [viewInINR, setViewInINR] = useState(false)
 
-  // Reset INR toggle when currency or form changes
-  useEffect(() => { setViewInINR(false) }, [form.currency, showForm])
+  // Sync INR toggle with pricingConfig showInINR setting (or reset on currency/form change)
+  useEffect(() => {
+    if (!showForm) { setViewInINR(false); return }
+    const pKey = `${form.destinationCountry}|||${getCurrencyForCountry(form.destinationCountry || '')}`
+    setViewInINR(pricingConfig[pKey]?.showInINR ?? false)
+  }, [form.currency, form.destinationCountry, showForm, pricingConfig])
 
   // Pricing config from Pricing tab (pricingConfig keyed by `${country}|||${currency}`)
   const [pricingConfig, setPricingConfig] = useState<Record<string, { markupPercent: number; showInINR: boolean }>>({})
@@ -2469,26 +2473,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                       </div>
                     </div>
                   </div>
-                  <div className="bg-purple-600 text-white rounded-2xl p-4 min-w-[160px] flex-shrink-0 text-center shadow-lg shadow-purple-200">
-                    {/* Currency toggle — only affects this Final Price display */}
+                  <div className="flex-shrink-0 flex flex-col items-center gap-2">
+                    {/* Currency toggle — floats above the card, clearly visible */}
                     {form.currency !== 'INR' && (
-                      <div className="flex items-center justify-center gap-1 bg-purple-700/50 rounded-lg p-0.5 mb-2">
+                      <div className="flex items-center gap-0.5 bg-white border border-gray-200 rounded-lg p-0.5 shadow-sm">
                         <button
                           type="button"
                           onClick={() => setViewInINR(false)}
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-md transition-colors ${!viewInINR ? 'bg-white text-purple-700 shadow-sm' : 'text-purple-200'}`}
+                          className={`text-[10px] font-bold px-3 py-1 rounded-md transition-colors ${!viewInINR ? 'bg-gray-800 text-white shadow-sm' : 'text-gray-400 hover:text-gray-700'}`}
                         >
                           {form.currency}
                         </button>
                         <button
                           type="button"
                           onClick={() => setViewInINR(true)}
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-md transition-colors ${viewInINR ? 'bg-white text-purple-700 shadow-sm' : 'text-purple-200'}`}
+                          className={`text-[10px] font-bold px-3 py-1 rounded-md transition-colors ${viewInINR ? 'bg-purple-600 text-white shadow-sm' : 'text-gray-400 hover:text-gray-700'}`}
                         >
                           INR
                         </button>
                       </div>
                     )}
+                  <div className="bg-purple-600 text-white rounded-2xl p-4 min-w-[160px] text-center shadow-lg shadow-purple-200">
                     {/* Label mirrors exactly what the PDF shows */}
                     <p className="text-[9px] font-bold uppercase tracking-widest opacity-70 mb-0.5">
                       {totalPriceVal > 0 ? 'Total Package Price' : 'Per Person Price'}
@@ -2516,6 +2521,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                         </p>
                       </>
                     )}
+                  </div>
                   </div>
                 </div>
               </div>
