@@ -199,7 +199,7 @@ export default function StepDmc1Destination({
     : allDestinations
 
   const handleSelect = async (dest: DestinationOption) => {
-    setDestInput(dest.label)
+    setDestInput(dest.name)
     setShowDropdown(false)
     setIsLoadingPackages(true)
 
@@ -454,7 +454,7 @@ export default function StepDmc1Destination({
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                           </span>
-                          {dest.label}
+                          {dest.name}
                         </li>
                       ))}
                     </ul>
