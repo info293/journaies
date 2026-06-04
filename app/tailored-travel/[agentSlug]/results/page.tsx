@@ -130,6 +130,24 @@ export default function AgentResultsPage() {
   const [subAgentLogoUrl, setSubAgentLogoUrl] = useState<string | undefined>(undefined)
   const [sessionId, setSessionId] = useState<string | undefined>(undefined)
   const [selectedPkgIdx, setSelectedPkgIdx] = useState(0)
+  const [showLiveINR, setShowLiveINR] = useState(false)
+  const [liveRate, setLiveRate] = useState<number | null>(null)
+  const [liveRateLoading, setLiveRateLoading] = useState(false)
+
+  async function fetchLiveRate(currency: string) {
+    if (liveRate !== null) { setShowLiveINR(true); return }
+    setLiveRateLoading(true)
+    try {
+      const res = await fetch(`https://open.er-api.com/v6/latest/${currency}`)
+      const data = await res.json()
+      if (data.result === 'success') {
+        setLiveRate(data.rates['INR'] ?? 1)
+        setShowLiveINR(true)
+      }
+    } catch { } finally {
+      setLiveRateLoading(false)
+    }
+  }
 
   // Day narrator
   const [currentDayIdx, setCurrentDayIdx] = useState(0)
@@ -734,14 +752,40 @@ export default function AgentResultsPage() {
             {/* Price + action card */}
             <div className="bg-white rounded-xl shadow-xl p-5 sm:p-6 space-y-5">
               <div>
-                <p className="text-xs text-gray-500 mb-0.5">{bestPkg.totalPrice ? 'Total Price' : 'Starting from'}</p>
-                <p className="text-3xl font-serif text-[#c99846] leading-tight">
-                  {getCurrencySymbol(bestPkg.Currency)}{(bestPkg.totalPrice || bestPkg.Price_Min_INR).toLocaleString()}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {bestPkg.totalPrice ? 'full package' : 'per person'}
-                  {bestPkg.gst ? <span className="ml-1 text-amber-600 font-medium">+ {bestPkg.gst}% GST</span> : null}
-                </p>
+                <div className="flex items-center justify-between mb-0.5">
+                  <p className="text-xs text-gray-500">{bestPkg.totalPrice ? 'Total Price' : 'Starting from'}</p>
+                  {bestPkg.Currency && bestPkg.Currency !== 'INR' && (
+                    <button
+                      onClick={() => showLiveINR ? setShowLiveINR(false) : fetchLiveRate(bestPkg.Currency!)}
+                      disabled={liveRateLoading}
+                      className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border transition-colors ${showLiveINR ? 'bg-primary text-white border-primary' : 'border-gray-300 text-gray-500 hover:border-primary hover:text-primary'}`}
+                    >
+                      {liveRateLoading ? '…' : showLiveINR ? `${bestPkg.Currency} view` : 'View in ₹'}
+                    </button>
+                  )}
+                </div>
+                {showLiveINR && liveRate !== null && bestPkg.Currency !== 'INR' ? (
+                  <>
+                    <p className="text-3xl font-serif text-[#c99846] leading-tight">
+                      ₹{Math.round((bestPkg.totalPrice || bestPkg.Price_Min_INR) * liveRate).toLocaleString('en-IN')}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {bestPkg.totalPrice ? 'full package' : 'per person'}
+                      {bestPkg.gst ? <span className="ml-1 text-amber-600 font-medium">+ {bestPkg.gst}% GST</span> : null}
+                      <span className="ml-1 text-gray-400">· 1 {bestPkg.Currency} = ₹{liveRate.toFixed(2)} live</span>
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-3xl font-serif text-[#c99846] leading-tight">
+                      {getCurrencySymbol(bestPkg.Currency)}{(bestPkg.totalPrice || bestPkg.Price_Min_INR).toLocaleString()}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {bestPkg.totalPrice ? 'full package' : 'per person'}
+                      {bestPkg.gst ? <span className="ml-1 text-amber-600 font-medium">+ {bestPkg.gst}% GST</span> : null}
+                    </p>
+                  </>
+                )}
               </div>
 
               {/* Trip summary */}
