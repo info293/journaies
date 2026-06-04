@@ -1253,12 +1253,6 @@ function NameCaptureModal({ action, agentInfo, pkg, wizardData, subAgentId, subA
                   <span>{isTotalPrice ? 'Total Price' : 'Total per person'}</span>
                   <span>{currSym}{finalPricePerPerson.toLocaleString()}</span>
                 </div>
-                {!isTotalPrice && groupSize > 1 && (
-                  <div className="flex justify-between text-xs text-gray-500">
-                    <span>Total ({groupSize} pax)</span>
-                    <span>{currSym}{quotedPriceTotal.toLocaleString()}</span>
-                  </div>
-                )}
               </div>
             )}
           </div>
