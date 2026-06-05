@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus, Edit2, Trash2, Eye, EyeOff, Loader2, X, Save, Package, Upload, CheckCircle, AlertCircle, Star, MapPin, Clock, Users, Calendar, Download, Maximize2, GripVertical, ChevronDown, ChevronUp, Search, Filter } from 'lucide-react'
+import { Plus, Edit2, Trash2, Eye, EyeOff, Loader2, X, Save, Package, Upload, CheckCircle, AlertCircle, Star, MapPin, Clock, Users, Calendar, Download, Maximize2, GripVertical, ChevronDown, ChevronUp, Search, Filter, Copy, Check } from 'lucide-react'
 import { AgentPackage, HotelEntry, VehicleEntry } from '@/lib/types/agent'
 import { CURRENCIES, COUNTRY_CURRENCY, getCurrencySymbol, getCurrencyForCountry } from '@/lib/utils/currency'
 import ConfirmModal from './ConfirmModal'
@@ -29,6 +29,107 @@ async function fetchINRRate(fromCurrency: string): Promise<{ rate: number; updat
   const updatedAt: string = data.time_last_update_utc ?? new Date().toUTCString()
   RATE_CACHE[fromCurrency] = { rate, updatedAt, cachedAt: Date.now() }
   return { rate, updatedAt }
+}
+
+function buildPreviewCopyText(pkg: AgentPackage): string {
+  const currSym = getCurrencySymbol(pkg.currency)
+  const isTotalPkg = Boolean((pkg as any).totalPrice)
+  const displayPrice = (pkg as any).totalPrice || pkg.pricePerPerson || 0
+  const priceLabel = isTotalPkg ? 'Total Price' : 'Price Per Person'
+  const div = '━━━━━━━━━━━━━━━━━━━━━━'
+  const thin = '──────────────────────'
+  const lines: string[] = []
+
+  lines.push(`Dear Customer,`)
+  lines.push(``)
+  lines.push(`*${pkg.title}*`)
+  lines.push(div)
+
+  lines.push(``)
+  lines.push(`*BASIC INFORMATION*`)
+  lines.push(`*Destination:* ${pkg.destination}${pkg.destinationCountry ? ', ' + pkg.destinationCountry : ''}`)
+  lines.push(`*Duration:* ${pkg.durationDays} Days / ${pkg.durationNights} Nights`)
+  if (pkg.starCategory) lines.push(`*Hotel Category:* ${pkg.starCategory}`)
+  lines.push(`*Price:* ${currSym}${Number(displayPrice).toLocaleString('en-IN')} (${priceLabel})${pkg.gst ? ` + ${pkg.gst}% GST` : ''}`)
+
+  if ((pkg as any).overview) {
+    lines.push(``)
+    lines.push(thin)
+    lines.push(``)
+    lines.push(`*OVERVIEW*`)
+    lines.push((pkg as any).overview)
+  }
+
+  if (pkg.dayWiseItinerary) {
+    lines.push(``)
+    lines.push(thin)
+    lines.push(``)
+    lines.push(`*DAY-WISE ITINERARY*`)
+    pkg.dayWiseItinerary.split('\n').filter(Boolean).forEach(line => {
+      if (/^day\s*\d+/i.test(line)) {
+        lines.push(``)
+        lines.push(`*${line.trim()}*`)
+      } else {
+        lines.push(`  • ${line.trim()}`)
+      }
+    })
+  }
+
+  if (Array.isArray(pkg.hotels) && pkg.hotels.length > 0) {
+    lines.push(``)
+    lines.push(thin)
+    lines.push(``)
+    lines.push(`*HOTEL INFORMATION*`)
+    pkg.hotels.forEach((h: any) => {
+      lines.push(``)
+      lines.push(`*${h.destination || 'Hotel'}*${h.nights ? ` — ${h.nights} Night${h.nights > 1 ? 's' : ''}` : ''}`)
+      if (h.hotels) lines.push(`   ${h.hotels}`)
+      if (h.mealPlan) lines.push(`   Meal Plan: ${h.mealPlan}`)
+      if (h.roomType) lines.push(`   Room: ${h.roomType}`)
+    })
+  }
+
+  if (Array.isArray(pkg.vehicles) && pkg.vehicles.length > 0) {
+    lines.push(``)
+    lines.push(thin)
+    lines.push(``)
+    lines.push(`*TRANSPORT & TRANSFERS*`)
+    pkg.vehicles.forEach((v: any) => { if (v.vehicleType) lines.push(`  ${v.vehicleType}`) })
+  }
+
+  if (Array.isArray(pkg.inclusions) && pkg.inclusions.length > 0) {
+    lines.push(``)
+    lines.push(thin)
+    lines.push(``)
+    lines.push(`*INCLUSIONS*`)
+    pkg.inclusions.forEach(inc => lines.push(`  ✓ ${inc}`))
+  }
+
+  if (Array.isArray(pkg.exclusions) && pkg.exclusions.length > 0) {
+    lines.push(``)
+    lines.push(thin)
+    lines.push(``)
+    lines.push(`*EXCLUSIONS*`)
+    pkg.exclusions.forEach(exc => lines.push(`  ✗ ${exc}`))
+  }
+
+  if ((pkg as any).paymentPolicy) {
+    lines.push(``)
+    lines.push(thin)
+    lines.push(``)
+    lines.push(`*PAYMENT POLICY*`)
+    String((pkg as any).paymentPolicy).split('\n').filter(Boolean).forEach(line => lines.push(`  ${line.trim()}`))
+  }
+
+  if ((pkg as any).cancellationPolicy) {
+    lines.push(``)
+    lines.push(thin)
+    lines.push(``)
+    lines.push(`*CANCELLATION POLICY*`)
+    String((pkg as any).cancellationPolicy).split('\n').filter(Boolean).forEach(line => lines.push(`  ${line.trim()}`))
+  }
+
+  return lines.join('\n')
 }
 
 interface Props {
@@ -215,6 +316,7 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [previewPkg, setPreviewPkg] = useState<AgentPackage | null>(null)
+  const [previewCopied, setPreviewCopied] = useState(false)
   const [showFormPreview, setShowFormPreview] = useState(false)
 
   // Day-wise itinerary items
@@ -2989,30 +3091,37 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                   <span className="text-[10px] font-semibold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Unsaved Draft</span>
                 )}
               </div>
-              <button onClick={() => setPreviewPkg(null)} className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(buildPreviewCopyText(previewPkg))
+                    setPreviewCopied(true)
+                    setTimeout(() => setPreviewCopied(false), 2000)
+                  }}
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  {previewCopied ? <><Check className="w-3.5 h-3.5 text-green-500" /> Copied!</> : <><Copy className="w-3.5 h-3.5" /> Copy Text</>}
+                </button>
+                <button onClick={() => setPreviewPkg(null)} className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             <div className="p-5 space-y-4">
 
               {/* ── 1. Cover Image ── */}
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
-                  <span className="w-7 h-7 rounded-lg bg-green-50 flex items-center justify-center text-sm">🖼️</span>
-                  <p className="text-sm font-bold text-gray-800">Cover Image</p>
-                </div>
-                {previewPkg.primaryImageUrl ? (
+              {previewPkg.primaryImageUrl && (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
+                    <span className="w-7 h-7 rounded-lg bg-green-50 flex items-center justify-center text-sm">🖼️</span>
+                    <p className="text-sm font-bold text-gray-800">Cover Image</p>
+                  </div>
                   <div className="h-52 w-full overflow-hidden">
                     <img src={previewPkg.primaryImageUrl} alt={previewPkg.title} className="w-full h-full object-cover" />
                   </div>
-                ) : (
-                  <div className="h-32 bg-gradient-to-br from-purple-100 to-indigo-100 flex flex-col items-center justify-center gap-2">
-                    <Package className="w-8 h-8 text-purple-300" />
-                    <p className="text-sm text-gray-400">No cover image uploaded</p>
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* ── 2. Basic Info ── */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
@@ -3039,25 +3148,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                       <p className="text-sm font-semibold text-gray-800 flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-gray-400" />{previewPkg.durationNights ? `${previewPkg.durationNights}N / ${previewPkg.durationDays}D` : `${previewPkg.durationDays}D`}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Group Size</p>
-                      <p className="text-sm text-gray-700 flex items-center gap-1"><Users className="w-3.5 h-3.5 text-gray-400" />{previewPkg.minGroupSize || 1}–{previewPkg.maxGroupSize || 20} pax</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Season</p>
-                      <p className="text-sm text-gray-700 flex items-center gap-1"><Calendar className="w-3.5 h-3.5 text-gray-400" />{previewPkg.seasonalAvailability || 'Year Round'}</p>
-                    </div>
-                    <div>
                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Star Category</p>
                       <p className="text-sm text-gray-700 flex items-center gap-1"><Star className="w-3.5 h-3.5 text-amber-400" />{previewPkg.starCategory || '—'}</p>
                     </div>
                   </div>
-                  {(previewPkg.travelType || previewPkg.theme || previewPkg.mood) && (
-                    <div className="flex flex-wrap gap-2">
-                      {previewPkg.travelType && <span className="bg-purple-100 text-purple-700 text-xs font-semibold px-3 py-1 rounded-full">{previewPkg.travelType}</span>}
-                      {previewPkg.theme && <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full">{previewPkg.theme}</span>}
-                      {previewPkg.mood && <span className="bg-pink-100 text-pink-700 text-xs font-semibold px-3 py-1 rounded-full">{previewPkg.mood}</span>}
-                    </div>
-                  )}
                   {previewPkg.overview && (
                     <div>
                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Overview</p>
@@ -3117,22 +3211,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
               </div>
 
               {/* ── 4. Master Itinerary ── */}
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
-                  <span className="w-7 h-7 rounded-lg bg-purple-50 flex items-center justify-center">
-                    <Calendar className="w-4 h-4 text-purple-600" />
-                  </span>
-                  <p className="text-sm font-bold text-gray-800">Master Itinerary</p>
-                </div>
-                <div className="p-5">
-                  {(() => {
-                    const days = parseDayItems(previewPkg.dayWiseItinerary || '')
-                    if (days.length === 0) return (
-                      <div className="text-center py-6 border-2 border-dashed border-gray-100 rounded-xl">
-                        <p className="text-sm text-gray-400">No itinerary added</p>
-                      </div>
-                    )
-                    return (
+              {(() => {
+                const days = parseDayItems(previewPkg.dayWiseItinerary || '')
+                if (days.length === 0) return null
+                return (
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+                    <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
+                      <span className="w-7 h-7 rounded-lg bg-purple-50 flex items-center justify-center">
+                        <Calendar className="w-4 h-4 text-purple-600" />
+                      </span>
+                      <p className="text-sm font-bold text-gray-800">Master Itinerary</p>
+                    </div>
+                    <div className="p-5">
                       <div className="space-y-3">
                         {days.map((day, idx) => (
                           <div key={day.id} className="flex gap-3">
@@ -3154,19 +3244,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                           </div>
                         ))}
                       </div>
-                    )
-                  })()}
-                </div>
-              </div>
+                    </div>
+                  </div>
+                )
+              })()}
 
               {/* ── 5. Hotels & Accommodation ── */}
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
-                  <span className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-sm">🏨</span>
-                  <p className="text-sm font-bold text-gray-800">Hotels & Accommodation</p>
-                </div>
-                <div className="p-5">
-                  {Array.isArray(previewPkg.hotels) && previewPkg.hotels.length > 0 ? (
+              {Array.isArray(previewPkg.hotels) && previewPkg.hotels.length > 0 && (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
+                    <span className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-sm">🏨</span>
+                    <p className="text-sm font-bold text-gray-800">Hotels & Accommodation</p>
+                  </div>
+                  <div className="p-5">
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
@@ -3191,113 +3281,99 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                         </tbody>
                       </table>
                     </div>
-                  ) : (
-                    <div className="text-center py-6 border-2 border-dashed border-gray-100 rounded-xl">
-                      <p className="text-sm text-gray-400">No hotels added</p>
-                    </div>
-                  )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* ── 6. Vehicles & Transfers ── */}
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
-                  <span className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-sm">🚗</span>
-                  <p className="text-sm font-bold text-gray-800">Vehicles & Transfers</p>
-                </div>
-                <div className="p-5">
-                  {Array.isArray(previewPkg.vehicles) && previewPkg.vehicles.length > 0 ? (
+              {Array.isArray(previewPkg.vehicles) && previewPkg.vehicles.length > 0 && (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
+                    <span className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-sm">🚗</span>
+                    <p className="text-sm font-bold text-gray-800">Vehicles & Transfers</p>
+                  </div>
+                  <div className="p-5">
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="border-b border-gray-100">
-                            <th className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-2 pr-3">Vehicle Type</th>
-                            <th className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-2 w-14">Seats</th>
+                            <th className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-2">Vehicle Type</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                           {previewPkg.vehicles.map((v: VehicleEntry, i: number) => (
                             <tr key={i}>
-                              <td className="py-2.5 pr-3 text-sm font-semibold text-gray-800">{v.vehicleType || '—'}</td>
-                              <td className="py-2.5 text-sm text-gray-700 text-center">{v.seats}</td>
+                              <td className="py-2.5 text-sm font-semibold text-gray-800">{v.vehicleType || '—'}</td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
                     </div>
-                  ) : (
-                    <div className="text-center py-6 border-2 border-dashed border-gray-100 rounded-xl">
-                      <p className="text-sm text-gray-400">No vehicles added</p>
-                    </div>
-                  )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* ── 7. Inclusions & Exclusions ── */}
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
-                  <span className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-sm">📝</span>
-                  <p className="text-sm font-bold text-gray-800">Inclusions & Exclusions</p>
-                </div>
-                <div className="p-5">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-[10px] font-bold text-green-700 uppercase tracking-wider mb-2">✓ Inclusions</p>
-                      {Array.isArray(previewPkg.inclusions) && previewPkg.inclusions.length > 0 ? (
-                        <ul className="space-y-1.5">
-                          {previewPkg.inclusions.map((inc: string, i: number) => (
-                            <li key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
-                              <span className="text-green-500 mt-0.5">•</span>{inc}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-xs text-gray-400 italic">None listed</p>
+              {((Array.isArray(previewPkg.inclusions) && previewPkg.inclusions.length > 0) || (Array.isArray(previewPkg.exclusions) && previewPkg.exclusions.length > 0)) && (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
+                    <span className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center text-sm">📝</span>
+                    <p className="text-sm font-bold text-gray-800">Inclusions & Exclusions</p>
+                  </div>
+                  <div className="p-5">
+                    <div className="grid grid-cols-2 gap-4">
+                      {Array.isArray(previewPkg.inclusions) && previewPkg.inclusions.length > 0 && (
+                        <div>
+                          <p className="text-[10px] font-bold text-green-700 uppercase tracking-wider mb-2">✓ Inclusions</p>
+                          <ul className="space-y-1.5">
+                            {previewPkg.inclusions.map((inc: string, i: number) => (
+                              <li key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
+                                <span className="text-green-500 mt-0.5">•</span>{inc}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
                       )}
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-red-600 uppercase tracking-wider mb-2">✗ Exclusions</p>
-                      {Array.isArray(previewPkg.exclusions) && previewPkg.exclusions.length > 0 ? (
-                        <ul className="space-y-1.5">
-                          {previewPkg.exclusions.map((exc: string, i: number) => (
-                            <li key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
-                              <span className="text-red-400 mt-0.5">•</span>{exc}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-xs text-gray-400 italic">None listed</p>
+                      {Array.isArray(previewPkg.exclusions) && previewPkg.exclusions.length > 0 && (
+                        <div>
+                          <p className="text-[10px] font-bold text-red-600 uppercase tracking-wider mb-2">✗ Exclusions</p>
+                          <ul className="space-y-1.5">
+                            {previewPkg.exclusions.map((exc: string, i: number) => (
+                              <li key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
+                                <span className="text-red-400 mt-0.5">•</span>{exc}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
                       )}
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* ── 8. Payment & Cancellation Policy ── */}
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-                <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
-                  <span className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-sm">📋</span>
-                  <p className="text-sm font-bold text-gray-800">Payment & Cancellation Policy</p>
-                </div>
-                <div className="p-5 space-y-4">
-                  <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Payment Policy</p>
-                    {(previewPkg as any).paymentPolicy ? (
-                      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{(previewPkg as any).paymentPolicy}</p>
-                    ) : (
-                      <p className="text-xs text-gray-400 italic">No payment policy set</p>
-                    )}
+              {((previewPkg as any).paymentPolicy || (previewPkg as any).cancellationPolicy) && (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-gray-50">
+                    <span className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-sm">📋</span>
+                    <p className="text-sm font-bold text-gray-800">Payment & Cancellation Policy</p>
                   </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Cancellation Policy</p>
-                    {(previewPkg as any).cancellationPolicy ? (
-                      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{(previewPkg as any).cancellationPolicy}</p>
-                    ) : (
-                      <p className="text-xs text-gray-400 italic">No cancellation policy set</p>
+                  <div className="p-5 space-y-4">
+                    {(previewPkg as any).paymentPolicy && (
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Payment Policy</p>
+                        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{(previewPkg as any).paymentPolicy}</p>
+                      </div>
+                    )}
+                    {(previewPkg as any).cancellationPolicy && (
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Cancellation Policy</p>
+                        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{(previewPkg as any).cancellationPolicy}</p>
+                      </div>
                     )}
                   </div>
                 </div>
-              </div>
+              )}
 
             </div>
 
