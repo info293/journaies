@@ -1105,7 +1105,33 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
 
   async function downloadPdf() {
     const base = Number(form.pricePerPerson) || 0
-    const finalPrice = markupEnabled ? base * (1 + Number(markupPercent) / 100) : base
+    const totalPriceVal = Number(form.totalPrice) || 0
+    const pricingKey = `${form.destinationCountry}|||${getCurrencyForCountry(form.destinationCountry || '')}`
+    const pricingEntry = pricingConfig[pricingKey]
+    const bufferAmount = form.currency !== 'INR' ? (pricingEntry?.markupPercent || 0) : 0
+    const effectiveRate = form.currency !== 'INR' ? exchangeRate + bufferAmount : 1
+    const markup = markupEnabled ? Number(markupPercent) : 0
+
+    // Use INR-converted price when the user has INR view active — matches the purple card
+    let pdfCurrency = form.currency || 'INR'
+    let pdfPricePerPerson: number | null = null
+    let pdfTotalPrice: number | null = null
+
+    if (viewInINR && form.currency !== 'INR') {
+      pdfCurrency = 'INR'
+      if (totalPriceVal > 0) {
+        pdfTotalPrice = Math.round(totalPriceVal * effectiveRate * (1 + markup / 100))
+      } else if (base > 0) {
+        pdfPricePerPerson = Math.round(base * effectiveRate * (1 + markup / 100))
+      }
+    } else {
+      if (totalPriceVal > 0) {
+        pdfTotalPrice = Math.round(totalPriceVal * (1 + markup / 100))
+      } else if (base > 0) {
+        pdfPricePerPerson = Math.round(base * (1 + markup / 100))
+      }
+    }
+
     await openPackagePdfWindow({
       title: form.title || 'Travel Package',
       destination: form.destination,
@@ -1117,9 +1143,9 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
       travelType: form.travelType || undefined,
       theme: form.theme || undefined,
       mood: form.mood || undefined,
-      currency: form.currency || 'INR',
-      pricePerPerson: finalPrice > 0 && !Number(form.totalPrice) ? finalPrice : null,
-      totalPrice: Number(form.totalPrice) > 0 ? Number(form.totalPrice) : null,
+      currency: pdfCurrency,
+      pricePerPerson: pdfPricePerPerson,
+      totalPrice: pdfTotalPrice,
       gst: form.gst !== '' ? Number(form.gst) : null,
       groupSize: (Number(form.adults) || 0) + (Number(form.children) || 0) + (Number(form.infants) || 0) || undefined,
       adults: Number(form.adults) || undefined,
@@ -1137,7 +1163,7 @@ export default function PackageManager({ agentId, companyName = 'DMC Partner', l
       agentContactName: contactName || undefined,
       agentLogoUrl: logoUrl || undefined,
       termsVariant: 'brochure',
-    })
+    }, 'download')
   }
 
   async function toggleActive(pkg: AgentPackage) {
