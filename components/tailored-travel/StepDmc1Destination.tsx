@@ -150,11 +150,9 @@ export default function StepDmc1Destination({
 
     const packagesToUse = selectedCities.length > 0
       ? nightFilteredPkgs.filter(pkg => {
-          const itinerary = (pkg.dayWiseItinerary || '').toLowerCase()
           const hotelCities = (Array.isArray(pkg.hotels) ? pkg.hotels : [])
             .map((h: any) => (h.destination || '').toLowerCase())
-          return selectedCities.some(city =>
-            itinerary.includes(city.toLowerCase()) ||
+          return selectedCities.every(city =>
             hotelCities.includes(city.toLowerCase())
           )
         })
@@ -179,13 +177,27 @@ export default function StepDmc1Destination({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ itineraries }),
     })
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) {
+          console.error('[pickup-drop] API error:', r.status, r.statusText)
+        }
+        return r.json()
+      })
       .then(d => {
         if (cancelled) return
-        setPickupDropPairs(Array.isArray(d.pairs) ? d.pairs : [])
+        const pairs = Array.isArray(d.pairs) ? d.pairs : []
+        if (pairs.length === 0) {
+          console.warn('[pickup-drop] No pairs returned. Raw response:', d)
+        } else {
+          console.log('[pickup-drop] Pairs extracted:', pairs)
+        }
+        setPickupDropPairs(pairs)
         updateData({ pickupCity: '', dropCity: '' })
       })
-      .catch(() => { if (!cancelled) setPickupDropPairs([]) })
+      .catch(err => {
+        console.error('[pickup-drop] Fetch failed:', err)
+        if (!cancelled) setPickupDropPairs([])
+      })
       .finally(() => { if (!cancelled) setIsLoadingPickupDrop(false) })
 
     return () => { cancelled = true }

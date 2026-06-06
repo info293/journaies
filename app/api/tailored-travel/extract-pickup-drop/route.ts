@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 import { NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import OpenAI from 'openai'
@@ -130,6 +131,26 @@ No explanation.
 No markdown.
 No extra text.`
 
+// Extract only Day 1 and last-day paragraphs to reduce payload size and avoid Vercel timeouts
+function extractFirstAndLastDay(itinerary: string): string {
+  const lines = itinerary.split('\n')
+  const dayStarts: number[] = []
+  lines.forEach((line, i) => {
+    if (/\bday\s*\d+\b/i.test(line)) dayStarts.push(i)
+  })
+
+  if (dayStarts.length === 0) return itinerary.slice(0, 600)
+
+  const firstDayEnd = dayStarts.length > 1 ? dayStarts[1] : lines.length
+  const firstDayText = lines.slice(dayStarts[0], firstDayEnd).join('\n')
+
+  const lastDayStart = dayStarts[dayStarts.length - 1]
+  const lastDayText = lines.slice(lastDayStart).join('\n')
+
+  if (dayStarts.length === 1) return firstDayText.slice(0, 600)
+  return `${firstDayText.slice(0, 400)}\n\n${lastDayText.slice(0, 400)}`
+}
+
 export async function POST(req: Request) {
   try {
     const { itineraries } = await req.json()
@@ -144,7 +165,7 @@ export async function POST(req: Request) {
 
     const combinedText = itineraries
       .filter(Boolean)
-      .map((s: string, i: number) => `--- Package ${i + 1} ---\n${s}`)
+      .map((s: string, i: number) => `--- Package ${i + 1} ---\n${extractFirstAndLastDay(s)}`)
       .join('\n\n')
 
     const userContent = `For each package below, find the pickup (start) city and drop (end) city:\n\n${combinedText}`
