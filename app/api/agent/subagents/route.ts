@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/firebase'
 import {
   collection, query, where, getDocs,
-  doc, getDoc, setDoc, serverTimestamp
+  doc, getDoc, setDoc, addDoc, serverTimestamp
 } from 'firebase/firestore'
 
 // GET - list all travel agents for an agent (optionally filter by status)
@@ -107,7 +107,7 @@ export async function POST(request: Request) {
     }
     await setDoc(doc(db, 'sub_agents', uid), subAgentDoc)
 
-    // ── Send acknowledgement emails ─────────────────────────────────────
+    // ── Send acknowledgement emails + in-app notification ───────────────
     const BASE = process.env.NEXT_PUBLIC_APP_URL || 'https://www.travelzada.com'
     if (selfRegister) {
       // Email to travel agent
@@ -119,7 +119,7 @@ export async function POST(request: Request) {
         }),
       }).catch(() => {})
 
-      // Notify DMC
+      // Email to DMC
       fetch(`${BASE}/api/email/send`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -131,6 +131,18 @@ export async function POST(request: Request) {
             travelAgentEmail: email,
           },
         }),
+      }).catch(() => {})
+
+      // In-app notification for DMC
+      addDoc(collection(db, 'agent_notifications'), {
+        agentId,
+        type: 'new_travel_agent',
+        travelAgentName: name,
+        travelAgentEmail: email,
+        travelAgentOrganization: organization || '',
+        preview: `${name} has requested to join your team${organization ? ` from ${organization}` : ''}.`,
+        isRead: false,
+        createdAt: serverTimestamp(),
       }).catch(() => {})
     }
 

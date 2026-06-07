@@ -33,6 +33,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
     const updates: Record<string, any> = { updatedAt: serverTimestamp() }
     if (typeof isActive === 'boolean') updates.isActive = isActive
+    if (body.status !== undefined) updates.status = body.status
     if (name !== undefined) updates.name = name
     if (phone !== undefined) updates.phone = phone
     if (logoUrl !== undefined) updates.logoUrl = logoUrl

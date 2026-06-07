@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import {
   UserCog, Plus, X, Eye, EyeOff,
   Trash2, Phone, Mail, Calendar, Loader2, AlertCircle, CheckCircle,
-  Copy, Check, Link as LinkIcon, Clock, UserCheck, UserX, Search
+  Copy, Check, Link as LinkIcon, Clock, UserCheck, UserX, Search, RefreshCw
 } from 'lucide-react'
 import ConfirmModal from './ConfirmModal'
 
@@ -42,6 +42,7 @@ export default function TeamManager({ agentId, agentSlug }: Props) {
   const [copiedLink, setCopiedLink] = useState(false)
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all')
   const [teamSearch, setTeamSearch] = useState('')
+  const [refreshing, setRefreshing] = useState(false)
 
   const registrationUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/join/${agentSlug}`
@@ -52,10 +53,19 @@ export default function TeamManager({ agentId, agentSlug }: Props) {
       const res = await fetch(`/api/agent/subagents?agentId=${agentId}`)
       const data = await res.json()
       if (data.success) setAgents(data.subAgents)
-    } catch { } finally { setLoading(false) }
+    } catch (err) {
+      console.error('[TeamManager] fetch failed:', err)
+    } finally {
+      setLoading(false)
+    }
   }, [agentId])
 
-  useEffect(() => { fetchAgents() }, [fetchAgents])
+  // Initial load + poll every 10 s so new self-registrations appear automatically
+  useEffect(() => {
+    fetchAgents()
+    const interval = setInterval(fetchAgents, 10_000)
+    return () => clearInterval(interval)
+  }, [fetchAgents])
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
@@ -73,7 +83,6 @@ export default function TeamManager({ agentId, agentSlug }: Props) {
       if (!res.ok) throw new Error(data.error || 'Failed to create')
       setFormSuccess(`Travel agent "${form.name}" added successfully.`)
       setForm({ name: '', email: '', password: '', phone: '' })
-      await fetchAgents()
       setTimeout(() => { setShowForm(false); setFormSuccess('') }, 2500)
     } catch (err: any) {
       setFormError(err.message)
@@ -87,7 +96,6 @@ export default function TeamManager({ agentId, agentSlug }: Props) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isActive: true, status: 'active', approve: true }),
     })
-    setAgents(prev => prev.map(a => a.id === id ? { ...a, status: 'active', isActive: true } : a))
     setActionLoading(null)
   }
 
@@ -98,7 +106,6 @@ export default function TeamManager({ agentId, agentSlug }: Props) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isActive: false, status: 'suspended' }),
     })
-    setAgents(prev => prev.map(a => a.id === id ? { ...a, status: 'suspended', isActive: false } : a))
     setActionLoading(null)
   }
 
@@ -110,14 +117,12 @@ export default function TeamManager({ agentId, agentSlug }: Props) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isActive: newActive, status: newActive ? 'active' : 'suspended' }),
     })
-    setAgents(prev => prev.map(a => a.id === agent.id ? { ...a, isActive: newActive, status: newActive ? 'active' : 'suspended' } : a))
     setActionLoading(null)
   }
 
   async function handleDelete(id: string) {
     setActionLoading(id)
     await fetch(`/api/agent/subagents/${id}`, { method: 'DELETE' })
-    setAgents(prev => prev.filter(a => a.id !== id))
     setDeleteConfirm(null)
     setActionLoading(null)
   }
@@ -143,12 +148,26 @@ export default function TeamManager({ agentId, agentSlug }: Props) {
     return matchStatus && matchSearch
   })
 
+  async function handleRefresh() {
+    setRefreshing(true)
+    await fetchAgents()
+    setRefreshing(false)
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div></div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            title="Refresh list"
+            className="p-2 rounded-xl border border-gray-200 bg-white text-gray-500 hover:text-primary hover:border-primary transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+          </button>
           <button
             onClick={copyRegLink}
             className="flex items-center gap-1.5 text-xs font-semibold border border-gray-200 bg-white text-gray-600 px-3 py-2 rounded-xl hover:border-primary hover:text-primary transition-colors"

@@ -434,7 +434,7 @@ export default function SubAgentDashboardPage() {
 
   // Fetch everything in parallel
   const fetchAll = useCallback(async () => {
-    if (!currentUser || !parentAgentId || !parentAgentSlug) return
+    if (!currentUser || !parentAgentId || !parentAgentSlug) { setLoading(false); return }
     setLoading(true)
     try {
       const [bookRes, sessRes, quotRes, pkgRes] = await Promise.all([

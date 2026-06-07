@@ -15,7 +15,7 @@ const FEATURES = [
 
 export default function AgentLoginPage() {
   const router = useRouter()
-  const { login, currentUser, isAgent, loading } = useAuth()
+  const { login, currentUser, isAgent, isSubAgent, loading } = useAuth()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -27,10 +27,11 @@ export default function AgentLoginPage() {
   useEffect(() => {
     if (loading) return
     if (currentUser && isAgent) router.push('/dmc-dashboard')
-    if (currentUser && !isAgent && !submitting) {
+    else if (currentUser && isSubAgent) router.push('/travel-agent-dashboard')
+    else if (currentUser && !isAgent && !isSubAgent && !submitting) {
       setError('This account does not have partner access. Contact support if you believe this is a mistake.')
     }
-  }, [currentUser, isAgent, loading, submitting])
+  }, [currentUser, isAgent, isSubAgent, loading, submitting])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

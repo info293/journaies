@@ -140,11 +140,12 @@ export default function AgentDashboardPage() {
   // When DMC opens a tab, mark its notifications as read locally
   useEffect(() => {
     if (tab === 'bookings') setNewBookingCount(0)
-    if (tab === 'quotations' || tab === 'bookings') {
+    if (tab === 'quotations' || tab === 'bookings' || tab === 'team') {
       setNotifications(prev => prev.map(n => {
-        const isTabNotif = tab === 'quotations'
-          ? ['new_quotation', 'quotation_message', 'price_update', 'quotation_status'].includes(n.type)
-          : n.type === 'new_booking'
+        const isTabNotif =
+          tab === 'quotations' ? ['new_quotation', 'quotation_message', 'price_update', 'quotation_status'].includes(n.type)
+          : tab === 'bookings' ? n.type === 'new_booking'
+          : n.type === 'new_travel_agent'
         return isTabNotif ? { ...n, isRead: true } : n
       }))
     }
@@ -209,6 +210,7 @@ export default function AgentDashboardPage() {
   const QUOTATION_NOTIF_TYPES = ['new_quotation', 'quotation_message', 'price_update', 'quotation_status']
   const quotationNotifCount = notifications.filter(n => !n.isRead && QUOTATION_NOTIF_TYPES.includes(n.type)).length
   const bookingNotifCount = newBookingCount || notifications.filter(n => !n.isRead && n.type === 'new_booking').length
+  const teamNotifCount = notifications.filter(n => !n.isRead && n.type === 'new_travel_agent').length
   const totalUnread = notifications.filter(n => !n.isRead).length
 
   const TABS: TabDef[] = [
@@ -218,7 +220,7 @@ export default function AgentDashboardPage() {
     // { id: 'bookings', label: 'Bookings', icon: <Inbox className="w-4 h-4" />, badge: bookingNotifCount || undefined },
     // { id: 'analytics', label: 'Analytics', icon: <BarChart2 className="w-4 h-4" /> },
     // { id: 'customers', label: 'Customers', icon: <Users className="w-4 h-4" /> },
-    { id: 'team', label: 'Travel Agents', icon: <UserCog className="w-4 h-4" /> },
+    { id: 'team', label: 'Travel Agents', icon: <UserCog className="w-4 h-4" />, badge: teamNotifCount || undefined },
     { id: 'pricing', label: 'Pricing', icon: <TrendingUp className="w-4 h-4" /> },
     // { id: 'quotation_history', label: 'Quote History', icon: <BarChart2 className="w-4 h-4" /> },
     // { id: 'crm', label: 'CRM', icon: <Activity className="w-4 h-4" /> },

@@ -2,12 +2,12 @@
 
 import { useEffect, useRef } from 'react'
 import {
-  Bell, MessageSquare, BookOpen, X, CheckCheck, RefreshCw, Clock, FileText, IndianRupee
+  Bell, MessageSquare, BookOpen, X, CheckCheck, RefreshCw, Clock, FileText, IndianRupee, UserCog
 } from 'lucide-react'
 
 interface Notification {
   id: string
-  type: 'quotation_message' | 'quotation_status' | 'new_booking' | 'new_quotation' | 'price_update'
+  type: 'quotation_message' | 'quotation_status' | 'new_booking' | 'new_quotation' | 'price_update' | 'new_travel_agent'
   subAgentName: string
   referenceTitle: string
   customerName: string
@@ -64,6 +64,12 @@ const TYPE_CONFIG: Record<string, { icon: any; color: string; label: string; tab
     color: 'bg-emerald-100 text-emerald-600',
     label: 'New Booking',
     tab: 'bookings',
+  },
+  new_travel_agent: {
+    icon: UserCog,
+    color: 'bg-violet-100 text-violet-600',
+    label: 'Agent Request',
+    tab: 'team',
   },
 }
 
@@ -155,10 +161,19 @@ export default function NotificationsPanel({ notifications, loading, onClose, on
                         {timeAgo(n.createdAt)}
                       </span>
                     </div>
-                    <p className="text-xs font-semibold text-gray-900 truncate">
-                      {n.subAgentName} · {n.customerName}
-                    </p>
-                    <p className="text-xs text-gray-500 truncate mt-0.5">{n.referenceTitle}</p>
+                    {n.type === 'new_travel_agent' ? (
+                      <>
+                        <p className="text-xs font-semibold text-gray-900 truncate">{(n as any).travelAgentName}</p>
+                        <p className="text-xs text-gray-500 truncate mt-0.5">{(n as any).travelAgentEmail}</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-xs font-semibold text-gray-900 truncate">
+                          {n.subAgentName} · {n.customerName}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate mt-0.5">{n.referenceTitle}</p>
+                      </>
+                    )}
                     <p className="text-xs text-gray-400 mt-0.5 line-clamp-2 leading-relaxed">{n.preview}</p>
                   </div>
 
