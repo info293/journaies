@@ -73,6 +73,9 @@ export default function TailoredItineraryWizard({ agentSlug, subAgentId, session
     const handleNext = () => {
         setDirection(1)
         setCurrentStep(prev => prev + 1)
+        if (typeof window !== 'undefined') {
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+        }
     }
 
     const handlePrev = () => {

@@ -32,7 +32,7 @@ function filterPackages(
       const itinerary = (pkg.dayWiseItinerary || '').toLowerCase()
       const hotelCities = (Array.isArray(pkg.hotels) ? pkg.hotels : [])
         .map((h: any) => (h.destination || '').toLowerCase())
-      return includedCities.some(city =>
+      return includedCities.every(city =>
         itinerary.includes(city.toLowerCase()) ||
         hotelCities.some((hc: string) => hc.includes(city.toLowerCase()))
       )
