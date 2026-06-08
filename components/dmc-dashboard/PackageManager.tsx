@@ -2466,7 +2466,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                     </div>
                   </div>
 
-                  {/* Travel Type */}
+                  {/* Travel Type — hidden */}
+                  {/*
                   <div>
                     <label className="label mb-2">Travel Type</label>
                     <div className="flex flex-wrap gap-2">
@@ -2477,6 +2478,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                       ))}
                     </div>
                   </div>
+                  */}
 
                   {/* Overview */}
                   <div>
@@ -2498,6 +2500,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                   </div>
                   <div className="col-span-2"><label className="label">Seasonal Availability</label><input name="seasonalAvailability" value={form.seasonalAvailability} onChange={handleChange} placeholder="Oct–Mar / Year Round" className="input" /></div>
                   */}
+
+                  {/* No. of Persons Travelling */}
+                  <div>
+                    <label className="label mb-2">No. of Persons Travelling</label>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Adults</p>
+                        <input name="adults" type="number" min="0" value={form.adults} onChange={handleChange} placeholder="0" className="input text-center font-bold" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Children</p>
+                        <input name="children" type="number" min="0" value={form.children} onChange={handleChange} placeholder="0" className="input text-center font-bold" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Infants</p>
+                        <input name="infants" type="number" min="0" value={form.infants} onChange={handleChange} placeholder="0" className="input text-center font-bold" />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -3178,6 +3199,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                       <p className="text-sm text-gray-700 flex items-center gap-1"><Star className="w-3.5 h-3.5 text-amber-400" />{previewPkg.starCategory || '—'}</p>
                     </div>
                   </div>
+                  {((previewPkg.adults ?? 0) + (previewPkg.children ?? 0) + (previewPkg.infants ?? 0)) > 0 && (
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Pax</p>
+                      <div className="flex items-center gap-3 text-sm font-semibold text-gray-800">
+                        {(previewPkg.adults ?? 0) > 0 && <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5 text-gray-400" />{previewPkg.adults} Adult{(previewPkg.adults ?? 0) !== 1 ? 's' : ''}</span>}
+                        {(previewPkg.children ?? 0) > 0 && <span className="text-gray-400">·</span>}
+                        {(previewPkg.children ?? 0) > 0 && <span>{previewPkg.children} Child{(previewPkg.children ?? 0) !== 1 ? 'ren' : ''}</span>}
+                        {(previewPkg.infants ?? 0) > 0 && <span className="text-gray-400">·</span>}
+                        {(previewPkg.infants ?? 0) > 0 && <span>{previewPkg.infants} Infant{(previewPkg.infants ?? 0) !== 1 ? 's' : ''}</span>}
+                      </div>
+                    </div>
+                  )}
                   {previewPkg.overview && (
                     <div>
                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Overview</p>
