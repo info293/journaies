@@ -78,6 +78,7 @@ export async function POST(request: Request) {
       subAgentId,
       bookingValue,
       quotedPrice,
+      agentComment,
     } = body
 
     if (!agentId || !customerName) {
@@ -102,6 +103,7 @@ export async function POST(request: Request) {
       kids: Number(kids) || 0,
       rooms: Number(rooms) || 1,
       specialRequests: specialRequests || '',
+      agentComment: agentComment || '',
       wizardData: wizardData || null,
       selectedPackage: selectedPackage || null,
       chatMessages: chatMessages || [],

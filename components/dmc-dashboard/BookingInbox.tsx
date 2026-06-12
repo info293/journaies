@@ -458,6 +458,14 @@ export default function BookingInbox({ agentId, currency }: Props) {
                       </div>
                     )}
 
+                    {/* Agent comment — submitted from Download/WhatsApp modal */}
+                    {booking.agentComment && (
+                      <div className="bg-amber-50 rounded-xl p-3 border border-amber-200 text-sm text-amber-900">
+                        <p className="text-xs font-bold text-amber-600 uppercase tracking-wide mb-1">Agent Notes</p>
+                        {booking.agentComment}
+                      </div>
+                    )}
+
                     {/* Booking value — pre-filled from package price */}
                     <div>
                       <div className="flex items-center justify-between mb-1.5">

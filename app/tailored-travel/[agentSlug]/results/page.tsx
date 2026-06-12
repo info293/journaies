@@ -1100,6 +1100,7 @@ function NameCaptureModal({ action, agentInfo, pkg, wizardData, subAgentId, subA
   onClose: () => void; onSuccess: (name: string, priceOpts: PriceOpts) => void
 }) {
   const [customerName, setCustomerName] = useState('')
+  const [agentComment, setAgentComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
@@ -1153,6 +1154,7 @@ function NameCaptureModal({ action, agentInfo, pkg, wizardData, subAgentId, subA
           feeValue: addServiceFee ? feeValue : null,
           currency: pkg.Currency || 'INR',
           showPrice,
+          agentComment: agentComment.trim(),
         }),
       })
       if (agentSlug && sessionId) {
@@ -1210,6 +1212,18 @@ function NameCaptureModal({ action, agentInfo, pkg, wizardData, subAgentId, subA
             {' · '}{wizardData?.passengers?.rooms || 1} room{(wizardData?.passengers?.rooms || 1) !== 1 ? 's' : ''}
             {' · '}{pkg.Duration_Nights}N {pkg.Duration_Days}D
           </p>
+        </div>
+
+        {/* Agent notes */}
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 mb-1.5">Customize Package <span className="font-normal text-gray-400">(optional — visible to DMC)</span></label>
+          <textarea
+            value={agentComment}
+            onChange={e => setAgentComment(e.target.value)}
+            rows={3}
+            placeholder="e.g. Client prefers sea-facing rooms, needs airport transfer, flexible on dates…"
+            className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/30 resize-none"
+          />
         </div>
 
         {/* Price controls */}

@@ -371,6 +371,7 @@ export function buildNewQuotationNotifyDmcEmail(opts: {
   paxLabel: string
   rooms: number
   preferredDates?: string
+  agentComment?: string
   dashboardUrl: string
 }): MailPayload {
   const rows: [string, string][] = [
@@ -379,6 +380,7 @@ export function buildNewQuotationNotifyDmcEmail(opts: {
     ['Passengers', `${opts.paxLabel} &nbsp;·&nbsp; ${opts.rooms} room${opts.rooms !== 1 ? 's' : ''}`],
     ...(opts.preferredDates ? [['Travel Dates', opts.preferredDates] as [string, string]] : []),
     ['Created By', opts.subAgentName],
+    ...(opts.agentComment ? [['Customize Package', opts.agentComment] as [string, string]] : []),
   ]
   return {
     to: '',

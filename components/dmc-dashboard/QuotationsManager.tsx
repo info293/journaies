@@ -98,6 +98,7 @@ interface Quotation {
   infants?: number
   rooms?: number
   specialRequests?: string
+  agentComment?: string
   status: string
   quotedPrice?: number | null
   agentNotes?: string
@@ -235,6 +236,7 @@ export default function QuotationsManager({ agentId, agentSlug, agentName, curre
   const [saveAsNameInput, setSaveAsNameInput] = useState('')
   const [chatPanelOpen, setChatPanelOpen] = useState(false)
   const [detailPanelOpen, setDetailPanelOpen] = useState(false)
+  const [openCommentId, setOpenCommentId] = useState<string | null>(null)
   const originalCustomFormRef = useRef<Partial<PackageData>>({})
   const originalCustomDayItemsRef = useRef<DayItem[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -707,6 +709,14 @@ export default function QuotationsManager({ agentId, agentSlug, agentName, curre
 
   useEffect(() => { fetchQuotations() }, [fetchQuotations])
 
+  // Close comment popup when clicking anywhere outside
+  useEffect(() => {
+    if (!openCommentId) return
+    function handleOutside() { setOpenCommentId(null) }
+    document.addEventListener('click', handleOutside)
+    return () => document.removeEventListener('click', handleOutside)
+  }, [openCommentId])
+
   // Auto-open customize form when navigated to /dmc-dashboard/quotations/[id]
   useEffect(() => {
     if (!openCustomizeId || loading || quotations.length === 0 || autoOpenDoneRef.current) return
@@ -1160,6 +1170,33 @@ export default function QuotationsManager({ agentId, agentSlug, agentName, curre
                       </td>}
                       <td className="px-4 py-3.5 text-center">
                         <div className="flex items-center gap-2 justify-center whitespace-nowrap">
+                          {/* Agent comment popup */}
+                          {q.agentComment && (
+                            <div
+                              className="relative"
+                              onClick={e => e.stopPropagation()}
+                            >
+                              <button
+                                onClick={e => {
+                                  e.stopPropagation()
+                                  setOpenCommentId(openCommentId === q.id ? null : q.id)
+                                }}
+                                className={`p-1.5 rounded-lg transition-colors ${openCommentId === q.id ? 'bg-amber-200 text-amber-700' : 'bg-amber-50 text-amber-500 hover:bg-amber-100 hover:text-amber-700'}`}
+                                title="View Agent Notes"
+                              >
+                                <MessageSquare className="w-3.5 h-3.5" />
+                              </button>
+                              {openCommentId === q.id && (
+                                <div
+                                  className="absolute bottom-full right-0 mb-2 w-72 bg-white border border-amber-200 rounded-2xl shadow-xl p-3.5 z-50 text-left"
+                                  onClick={e => e.stopPropagation()}
+                                >
+                                  <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-2">Customize Package — Agent Notes</p>
+                                  <p className="text-xs text-gray-700 leading-relaxed">{q.agentComment}</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
                           {false && <button
                             onClick={() => {
                               setActiveId(q.id)
@@ -1440,6 +1477,12 @@ export default function QuotationsManager({ agentId, agentSlug, agentName, curre
               <div>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Special Requests</p>
                 <p className="text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded-xl p-3 leading-relaxed">{active.specialRequests}</p>
+              </div>
+            )}
+            {active.agentComment && (
+              <div>
+                <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wide mb-2">Agent Notes</p>
+                <p className="text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-xl p-3 leading-relaxed">{active.agentComment}</p>
               </div>
             )}
           </div>

@@ -73,6 +73,7 @@ export async function POST(request: Request) {
       customPackageData, quotedPrice, agentOwned,
       quotedPricePerPerson, quotedPriceTotal, basePrice,
       serviceFee, feeType, feeValue, currency, showPrice,
+      agentComment,
     } = body
 
     if (!agentId || !subAgentId || !customerName) {
@@ -135,6 +136,7 @@ export async function POST(request: Request) {
       feeValue: feeValue ?? null,
       currency: currency || 'INR',
       showPrice: showPrice ?? true,
+      agentComment: agentComment || '',
       agentNotes: '',
       subAgentNotes: '',
       messages: [],
@@ -171,6 +173,7 @@ export async function POST(request: Request) {
         paxLabel,
         rooms: Number(rooms) || 1,
         preferredDates: preferredDates || undefined,
+        agentComment: agentComment || undefined,
         dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.travelzada.com'}/dmc-dashboard`,
       })
       mail.to = agent.email
