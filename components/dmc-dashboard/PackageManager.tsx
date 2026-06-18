@@ -177,7 +177,31 @@ const TRAVEL_TYPES = ['Leisure', 'Adventure', 'Honeymoon', 'Family', 'Corporate'
 const STAR_CATEGORIES = ['', '3-Star', '4-Star', '5-Star']
 const THEMES = ['Beach', 'Wildlife', 'Cultural', 'Hills', 'Desert', 'Adventure', 'Wellness', 'Heritage', 'Backpacking']
 const MOODS = ['Relaxing', 'Adventurous', 'Romantic', 'Family Fun', 'Spiritual', 'Exploratory']
-const VEHICLE_TYPES = ['Sedan', 'SUV', 'Innova Crysta', 'Tempo Traveller (12 Seater)', 'Tempo Traveller (16 Seater)', 'Mini Bus (20 Seater)', 'Bus (40+ Seater)', 'Luxury Car', 'Hatchback', 'Van', 'Auto Rickshaw']
+const VEHICLE_TYPES = [
+  'Hatchback/Similar',          // ~4 seats
+  'Sedan/Similar',               // ~4 seats
+  'SUV(Ertiga/Innova)',          // ~6-7 seats
+  'Innova Crysta/Similar',       // 7 seats
+  'SUV(Avanza/Xebia)',           // ~7 seats
+  'SUV(Xylo/Innova)',            // ~7 seats
+  'SUV (Scorpio/Innova Crysta)', // ~7 seats
+  'SUV (Ertiga/Kia Carens)',     // ~6-7 seats
+  'Vellfire',                    // 7 seats
+  'Hiace Van/Similar',           // ~9-10 seats
+  'Sprinter Van/Similar',        // ~9-14 seats
+  'Luxury Tempo Traveller 10 Seater',
+  'Tempo Traveller 12 Seater',
+  'Tempo Traveller 14 Seater/Similar',
+  'Tempo Traveller 16 Seater/Similar',
+  'Tempo Traveller 20 Seater/Similar',
+  'Luxury Urabnia 10 Seater',
+  'Urabnia 12 Seater',
+  'Urabnia 14 Seater/Similar',
+  'Urabnia 16 Seater/Similar',
+  'Urabnia 20 Seater/Similar',
+  'Bus/Coach 20+ Seater',
+  'Coach/Bus 45+ Seater',
+]
 
 const PRESET_PERKS = [
   { label: 'Free Airport Transfer', emoji: '🚗' },
@@ -2861,7 +2885,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                       <thead>
                         <tr className="border-b border-gray-100">
                           <th className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-2 pr-3">Vehicle Type</th>
-                          <th className="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider pb-2 pr-3 w-14">Seats</th>
                           <th className="pb-2 w-6" />
                         </tr>
                       </thead>
@@ -2879,15 +2902,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1
                                   <option value={v.vehicleType}>{v.vehicleType}</option>
                                 )}
                               </select>
-                            </td>
-                            <td className="py-2 pr-3">
-                              <input
-                                type="number"
-                                min="1"
-                                value={v.seats}
-                                onChange={e => updateVehicleEntry(v.id, 'seats', Number(e.target.value))}
-                                className="w-full text-sm text-center text-gray-800 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-blue-400"
-                              />
                             </td>
                             <td className="py-2">
                               <button onClick={() => removeVehicleEntry(v.id)} className="p-1 text-gray-200 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
