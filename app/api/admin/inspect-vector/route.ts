@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getIndex } from '@/lib/pinecone'
+import { logApiError } from '@/lib/api-logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -49,6 +50,7 @@ export async function GET(request: NextRequest) {
         })
 
     } catch (error: any) {
+        await logApiError('/api/admin/inspect-vector', 'GET', error)
         return NextResponse.json(
             { success: false, error: error.message },
             { status: 500 }

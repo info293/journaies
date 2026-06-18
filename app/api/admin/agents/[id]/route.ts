@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/firebase'
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore'
+import { logApiError } from '@/lib/api-logger'
 
 // GET - fetch a single agent
 export async function GET(
@@ -15,6 +16,7 @@ export async function GET(
     }
     return NextResponse.json({ success: true, agent: { id: snap.id, ...snap.data() } })
   } catch (error: any) {
+    await logApiError('/api/admin/agents/[id]', 'GET', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
@@ -76,7 +78,7 @@ export async function PATCH(
 
     return NextResponse.json({ success: true, action: action || 'updated' })
   } catch (error: any) {
-    console.error('[Admin Agents PATCH] Error:', error)
+    await logApiError('/api/admin/agents/[id]', 'PATCH', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase'
 import {
   collection, addDoc, query, where, getDocs, serverTimestamp, doc, getDoc
 } from 'firebase/firestore'
+import { logApiError } from '@/lib/api-logger'
 
 // GET - fetch all packages for an agent
 export async function GET(request: Request) {
@@ -29,7 +30,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ success: true, packages })
   } catch (error: any) {
-    console.error('[Agent Packages GET] Error:', error)
+    await logApiError('/api/agent/packages', 'GET', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
@@ -98,7 +99,7 @@ export async function POST(request: Request) {
       package: { id: docRef.id, ...newPackage },
     })
   } catch (error: any) {
-    console.error('[Agent Packages POST] Error:', error)
+    await logApiError('/api/agent/packages', 'POST', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

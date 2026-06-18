@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/firebase'
 import { collection, query, where, getDocs } from 'firebase/firestore'
+import { logApiError } from '@/lib/api-logger'
 
 export async function GET(request: Request) {
   try {
@@ -93,7 +94,7 @@ export async function GET(request: Request) {
       },
     })
   } catch (error: any) {
-    console.error('[Agent Analytics GET] Error:', error)
+    await logApiError('/api/agent/analytics', 'GET', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

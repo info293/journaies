@@ -3,6 +3,7 @@ import { collection, getDocs } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { embedPackage, formatPackageForEmbedding } from '@/lib/embeddings'
 import { upsertPackages, getIndexStats, deleteAllVectors } from '@/lib/pinecone'
+import { logApiError } from '@/lib/api-logger'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300 // 5 minutes for large batch operations
@@ -113,7 +114,7 @@ export async function POST(request: NextRequest) {
             indexStats,
         })
     } catch (error: any) {
-        console.error('Embed packages error:', error)
+        await logApiError('/api/admin/embed-packages', 'POST', error)
         return NextResponse.json(
             { success: false, error: error.message || 'Embedding failed' },
             { status: 500 }
@@ -131,6 +132,7 @@ export async function GET() {
         const stats = await getIndexStats()
         return NextResponse.json({ success: true, stats })
     } catch (error: any) {
+        await logApiError('/api/admin/embed-packages', 'GET', error)
         return NextResponse.json(
             { success: false, error: error.message },
             { status: 500 }

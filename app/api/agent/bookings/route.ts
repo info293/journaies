@@ -5,6 +5,7 @@ import {
   collection, addDoc, query, where, getDocs, doc, getDoc,
   updateDoc, serverTimestamp
 } from 'firebase/firestore'
+import { logApiError } from '@/lib/api-logger'
 
 async function writeNotification(payload: {
   agentId: string
@@ -48,7 +49,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ success: true, bookings })
   } catch (error: any) {
-    console.error('[Agent Bookings GET] Error:', error)
+    await logApiError('/api/agent/bookings', 'GET', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
@@ -149,7 +150,7 @@ export async function POST(request: Request) {
       message: 'Booking submitted successfully',
     })
   } catch (error: any) {
-    console.error('[Agent Bookings POST] Error:', error)
+    await logApiError('/api/agent/bookings', 'POST', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
@@ -178,7 +179,7 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({ success: true })
   } catch (error: any) {
-    console.error('[Agent Bookings PATCH] Error:', error)
+    await logApiError('/api/agent/bookings', 'PATCH', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

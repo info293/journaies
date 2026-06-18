@@ -4,6 +4,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import OpenAI from 'openai'
 import { db } from '@/lib/firebase'
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore'
+import { logApiError } from '@/lib/api-logger'
 
 const anthropic = process.env.ANTHROPIC_API_KEY
     ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -506,7 +507,7 @@ Return the top matches in the requested JSON format.`
         return NextResponse.json({ success: true, packages: finalResults })
 
     } catch (error: any) {
-        console.error('Find Packages API error:', error)
+        await logApiError('/api/tailored-travel/find-packages', 'POST', error)
         return NextResponse.json(
             { error: 'An error occurred while finding matches.' },
             { status: 500 }

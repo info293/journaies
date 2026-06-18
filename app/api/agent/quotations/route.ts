@@ -5,6 +5,7 @@ import {
   collection, addDoc, query, where, getDocs, getDoc, doc, serverTimestamp
 } from 'firebase/firestore'
 import { sendMail, buildNewQuotationNotifyDmcEmail } from '@/lib/mailer'
+import { logApiError } from '@/lib/api-logger'
 
 async function writeNotification(payload: {
   agentId: string
@@ -48,6 +49,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ success: true, quotations })
   } catch (error: any) {
+    await logApiError('/api/agent/quotations', 'GET', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
@@ -182,7 +184,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, quotationId: ref.id, publicId: quotation.publicId })
   } catch (error: any) {
-    console.error('[Quotations POST]', error)
+    await logApiError('/api/agent/quotations', 'POST', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

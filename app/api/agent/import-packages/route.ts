@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/firebase'
 import { collection, getDocs } from 'firebase/firestore'
+import { logApiError } from '@/lib/api-logger'
 
 // Destination_ID prefixes → human-readable destination name
 const DEST_MAP: Record<string, string> = {
@@ -99,7 +100,7 @@ export async function GET() {
 
     return NextResponse.json({ success: true, packages: results, count: results.length })
   } catch (error: any) {
-    console.error('[Import Packages]', error)
+    await logApiError('/api/agent/import-packages', 'GET', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

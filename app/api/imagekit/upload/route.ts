@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
+import { logApiError } from '@/lib/api-logger'
 
 const IMAGEKIT_UPLOAD_URL = 'https://upload.imagekit.io/api/v1/files/upload'
 
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, url: data.url, fileId: data.fileId })
   } catch (error: any) {
-    console.error('[ImageKit Upload] Exception:', error)
+    await logApiError('/api/imagekit/upload', 'POST', error)
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
 }

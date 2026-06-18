@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { logApiError } from '@/lib/api-logger'
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -100,7 +101,7 @@ Format your response strictly as JSON matching the schema. The locations array m
         return NextResponse.json({ coordinates: coordinatesMap })
 
     } catch (error: any) {
-        console.error('Error in geocode-itinerary API:', error)
+        await logApiError('/api/tailored-travel/geocode-itinerary', 'POST', error)
         return NextResponse.json(
             { error: error.message || 'Failed to geocode itinerary' },
             { status: 500 }

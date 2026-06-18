@@ -4,6 +4,7 @@ import { db } from '@/lib/firebase'
 import { collection, addDoc, doc, getDoc, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore'
 import { v4 as uuidv4 } from 'uuid'
 import { sendMail, buildMessageToAgentEmail, buildMessageToDmcEmail } from '@/lib/mailer'
+import { logApiError } from '@/lib/api-logger'
 
 async function writeNotification(payload: {
   agentId: string
@@ -33,6 +34,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     }
     return NextResponse.json({ success: true, quotation: { id: snap.id, ...snap.data() } })
   } catch (error: any) {
+    await logApiError('/api/agent/quotations/[id]', 'GET', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
@@ -181,7 +183,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     await updateDoc(ref, updates)
     return NextResponse.json({ success: true })
   } catch (error: any) {
-    console.error('[Quotation PATCH]', error)
+    await logApiError('/api/agent/quotations/[id]', 'PATCH', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

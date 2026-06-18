@@ -5,6 +5,7 @@ import {
   collection, query, where, getDocs, doc, updateDoc,
   writeBatch, serverTimestamp, orderBy, limit
 } from 'firebase/firestore'
+import { logApiError } from '@/lib/api-logger'
 
 // GET — fetch notifications for a DMC agent
 export async function GET(request: Request) {
@@ -25,6 +26,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ success: true, notifications, unreadCount })
   } catch (error: any) {
+    await logApiError('/api/agent/notifications', 'GET', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
@@ -49,6 +51,7 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({ success: true, marked: snap.size })
   } catch (error: any) {
+    await logApiError('/api/agent/notifications', 'PATCH', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/firebase'
 import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
+import { logApiError } from '@/lib/api-logger'
 
 // GET - fetch a single sub-agent's profile
 export async function GET(_request: Request, { params }: { params: { id: string } }) {
@@ -13,6 +14,7 @@ export async function GET(_request: Request, { params }: { params: { id: string 
     }
     return NextResponse.json({ success: true, subAgent: { id: snap.id, ...snap.data() } })
   } catch (error: any) {
+    await logApiError('/api/agent/subagents/[id]', 'GET', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
@@ -79,6 +81,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
     return NextResponse.json({ success: true })
   } catch (error: any) {
+    await logApiError('/api/agent/subagents/[id]', 'PATCH', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
@@ -110,6 +113,7 @@ export async function DELETE(_request: Request, { params }: { params: { id: stri
 
     return NextResponse.json({ success: true })
   } catch (error: any) {
+    await logApiError('/api/agent/subagents/[id]', 'DELETE', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

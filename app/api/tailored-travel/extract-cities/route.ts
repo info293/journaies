@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import OpenAI from 'openai'
+import { logApiError } from '@/lib/api-logger'
 
 const anthropic = process.env.ANTHROPIC_API_KEY
   ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -84,7 +85,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ cities: unique })
   } catch (err: any) {
-    console.error('[extract-cities] Error:', err?.message || err)
+    await logApiError('/api/tailored-travel/extract-cities', 'POST', err)
     return NextResponse.json({ cities: [], error: 'Extraction failed' }, { status: 500 })
   }
 }

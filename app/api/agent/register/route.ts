@@ -5,6 +5,7 @@ import {
   doc, setDoc, getDoc, collection, query, where, getDocs, serverTimestamp
 } from 'firebase/firestore'
 import { sendMail, buildDmcSignupEmail } from '@/lib/mailer'
+import { logApiError } from '@/lib/api-logger'
 
 // GET /api/agent/register?slug=agentSlug — look up agent by slug (used by tailored-travel page)
 export async function GET(request: Request) {
@@ -37,7 +38,7 @@ export async function GET(request: Request) {
       }
     })
   } catch (error: any) {
-    console.error('[Agent Register GET] Error:', error)
+    await logApiError('/api/agent/register', 'GET', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
@@ -131,7 +132,7 @@ export async function POST(request: Request) {
       message: 'Registration submitted. Awaiting admin approval.',
     })
   } catch (error: any) {
-    console.error('[Agent Register API] Error:', error)
+    await logApiError('/api/agent/register', 'POST', error)
     return NextResponse.json(
       { error: error.message || 'Registration failed' },
       { status: 500 }

@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { logApiError } from '@/lib/api-logger'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
         const translated = res.choices[0]?.message?.content?.trim() || text
         return NextResponse.json({ translated })
     } catch (error: any) {
-        console.error('[Translate] Error:', error)
+        await logApiError('/api/ai-planner/translate', 'POST', error)
         return NextResponse.json({ error: error.message }, { status: 500 })
     }
 }

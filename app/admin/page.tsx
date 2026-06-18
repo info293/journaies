@@ -9,12 +9,14 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import DmcApprovalManager from '@/components/admin/DmcApprovalManager'
+import ApiErrorLogs from '@/components/admin/ApiErrorLogs'
 
-type Tab = 'dmc' | 'overview'
+type Tab = 'dmc' | 'overview' | 'logs'
 
 const NAV_ITEMS: { id: Tab; label: string; icon: React.ReactNode; desc: string }[] = [
   { id: 'dmc',      label: 'DMC Management',  icon: <Building2 className="w-4 h-4" />,  desc: 'Approve or reject DMC applications' },
   { id: 'overview', label: 'Overview',         icon: <BarChart2 className="w-4 h-4" />,  desc: 'Platform-wide stats' },
+  { id: 'logs',     label: 'API Error Logs',   icon: <Activity className="w-4 h-4" />,   desc: 'Live errors from all API routes' },
 ]
 
 export default function AdminDashboardPage() {
@@ -195,6 +197,7 @@ export default function AdminDashboardPage() {
             >
               {tab === 'dmc' && <DmcApprovalManager />}
               {tab === 'overview' && <OverviewTab stats={stats} loading={statsLoading} />}
+              {tab === 'logs' && <ApiErrorLogs />}
             </motion.div>
           </div>
         </main>

@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import OpenAI from 'openai'
+import { logApiError } from '@/lib/api-logger'
 
 const anthropic = process.env.ANTHROPIC_API_KEY
   ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -121,7 +122,7 @@ Focus your answers on this specific package. Help the agent understand highlight
 
     return NextResponse.json({ reply, langCode })
   } catch (error: any) {
-    console.error('AI Assistant error:', error)
+    await logApiError('/api/agent/ai-assistant', 'POST', error)
     return NextResponse.json({ error: 'Failed to get AI response' }, { status: 500 })
   }
 }

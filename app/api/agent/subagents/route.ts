@@ -5,6 +5,7 @@ import {
   collection, query, where, getDocs,
   doc, getDoc, setDoc, addDoc, serverTimestamp
 } from 'firebase/firestore'
+import { logApiError } from '@/lib/api-logger'
 
 // GET - list all travel agents for an agent (optionally filter by status)
 export async function GET(request: Request) {
@@ -23,6 +24,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ success: true, subAgents })
   } catch (error: any) {
+    await logApiError('/api/agent/subagents', 'GET', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
@@ -148,7 +150,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, subAgent: { id: uid, ...subAgentDoc }, status })
   } catch (error: any) {
-    console.error('[TravelAgent POST] Error:', error)
+    await logApiError('/api/agent/subagents', 'POST', error)
     return NextResponse.json({ error: error.message || 'Failed to create travel agent' }, { status: 500 })
   }
 }

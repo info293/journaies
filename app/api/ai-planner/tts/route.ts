@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { logApiError } from '@/lib/api-logger'
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
             },
         })
     } catch (error: any) {
-        console.error('TTS API error:', error)
+        await logApiError('/api/ai-planner/tts', 'POST', error)
         return NextResponse.json(
             { error: 'Failed to generate speech' },
             { status: 500 }

@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/firebase'
 import { collection, query, where, getDocs } from 'firebase/firestore'
+import { logApiError } from '@/lib/api-logger'
 
 // GET agent by slug — used by customer-facing booking form
 export async function GET(request: Request) {
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
       },
     })
   } catch (error: any) {
-    console.error('[Agent Profile GET] Error:', error)
+    await logApiError('/api/agent/profile', 'GET', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

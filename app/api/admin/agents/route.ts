@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/firebase'
 import { collection, getDocs, query, where } from 'firebase/firestore'
+import { logApiError } from '@/lib/api-logger'
 
 // GET - list all agents (admin only)
 export async function GET(request: Request) {
@@ -39,7 +40,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ success: true, agents })
   } catch (error: any) {
-    console.error('[Admin Agents GET] Error:', error)
+    await logApiError('/api/admin/agents', 'GET', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

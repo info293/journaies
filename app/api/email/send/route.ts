@@ -8,6 +8,7 @@ import {
   buildTravelAgentSignupNotifyDmcEmail,
   buildTravelAgentApprovedEmail,
 } from '@/lib/mailer'
+import { logApiError } from '@/lib/api-logger'
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL || 'https://www.travelzada.com'
 
@@ -67,7 +68,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true })
   } catch (error: any) {
-    console.error('[Email send]', error)
+    await logApiError('/api/email/send', 'POST', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

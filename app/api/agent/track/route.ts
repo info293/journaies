@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/firebase'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { logApiError } from '@/lib/api-logger'
 
 // POST - track a session event (visit, itinerary_generated, booking_submitted)
 export async function POST(request: Request) {
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, id: docRef.id })
   } catch (error: any) {
-    console.error('[Track POST] Error:', error)
+    await logApiError('/api/agent/track', 'POST', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

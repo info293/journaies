@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/firebase'
 import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
+import { logApiError } from '@/lib/api-logger'
 
 // GET - fetch a single package
 export async function GET(
@@ -15,6 +16,7 @@ export async function GET(
     }
     return NextResponse.json({ success: true, package: { id: snap.id, ...snap.data() } })
   } catch (error: any) {
+    await logApiError('/api/agent/packages/[id]', 'GET', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
@@ -47,6 +49,7 @@ export async function PUT(
 
     return NextResponse.json({ success: true })
   } catch (error: any) {
+    await logApiError('/api/agent/packages/[id]', 'PUT', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
@@ -74,6 +77,7 @@ export async function DELETE(
     await deleteDoc(pkgRef)
     return NextResponse.json({ success: true })
   } catch (error: any) {
+    await logApiError('/api/agent/packages/[id]', 'DELETE', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

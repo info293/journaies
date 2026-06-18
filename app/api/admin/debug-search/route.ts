@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import { searchSimilarPackages } from '@/lib/pinecone'
+import { logApiError } from '@/lib/api-logger'
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
@@ -26,6 +27,7 @@ export async function GET(request: Request) {
             }))
         })
     } catch (error: any) {
+        await logApiError('/api/admin/debug-search', 'GET', error)
         return NextResponse.json({ error: error.message }, { status: 500 })
     }
 }
